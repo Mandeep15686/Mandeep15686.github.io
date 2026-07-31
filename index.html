@@ -11,6 +11,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" referrerpolicy="no-referrer">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
     <style>
         /* === DESIGN TOKENS === */
@@ -26,7 +27,11 @@
             --text-muted: #aab5ca;
             --primary: #00e5ff;
             --secondary: #6c63ff;
-            --accent: #7b61ff;
+            --accent: #5b8dee;
+            --accent2: #8b5cf6;
+            --accent3: #10d9a0;
+            --orange: #f59e0b;
+            --text2: #94a3b8;
             --glow: #64ffda;
             --font-body: "Inter", sans-serif;
             --font-display: "Space Grotesk", sans-serif;
@@ -51,6 +56,17 @@
         ul { list-style: none; }
         button { color: inherit; font: inherit; }
         :focus-visible { outline: 2px solid var(--primary); outline-offset: 4px; }
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
 
         /* === AMBIENT BACKGROUND === */
         .ambient,
@@ -367,14 +383,122 @@
         .tech-badge { padding: 0.28rem 0.5rem; border: 1px solid rgba(196, 227, 255, 0.12); border-radius: 6px; background: rgba(255, 255, 255, 0.04); color: #c7d9ec; font-family: var(--font-mono); font-size: 0.66rem; transition: background var(--transition), border-color var(--transition), color var(--transition); }
         .tech-badge:hover { border-color: rgba(0, 229, 255, 0.35); background: rgba(0, 229, 255, 0.1); color: var(--primary); }
 
-        /* === SKILLS === */
-        .skills-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.1rem; }
-        .skill-category { min-height: 100%; padding: 1.3rem; }
-        .skill-category h3 { display: flex; align-items: center; gap: 0.65rem; margin-bottom: 1.15rem; font-size: 1rem; }
-        .skill-category h3 i { color: var(--primary); font-size: 0.9rem; }
-        .skill-pills { display: flex; flex-wrap: wrap; gap: 0.55rem; }
-        .skill-pill { padding: 0.38rem 0.62rem; border: 1px solid rgba(196, 227, 255, 0.12); border-radius: 999px; background: rgba(255, 255, 255, 0.035); color: var(--text-muted); font-size: 0.79rem; font-weight: 500; transition: transform var(--transition), color var(--transition), border-color var(--transition), background var(--transition); }
-        .skill-pill:hover { border-color: rgba(100, 255, 218, 0.5); background: rgba(100, 255, 218, 0.07); color: var(--glow); transform: translateY(-2px); }
+        /* === ENHANCED SKILLS SYSTEM === */
+        .skills-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: 1.35rem;
+        }
+        .skill-category {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            min-height: 100%;
+            padding: 1.6rem 1.5rem;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            border-top: 3px solid var(--cat-color, var(--primary));
+            border-radius: 18px;
+            background: rgba(10, 16, 38, 0.65);
+            -webkit-backdrop-filter: blur(18px);
+            backdrop-filter: blur(18px);
+            transform-style: preserve-3d;
+            perspective: 1000px;
+            transition: transform 200ms cubic-bezier(.2, .8, .2, 1), border-color 200ms ease, box-shadow 250ms ease;
+            transition-delay: 0s !important;
+        }
+        .skill-category:hover {
+            border-color: var(--cat-color, var(--primary));
+            box-shadow: 0 22px 50px rgba(0, 0, 0, 0.45), 0 0 35px var(--cat-glow, rgba(0, 229, 255, 0.22));
+            transition-delay: 0s !important;
+        }
+        .skill-cat-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+            margin-bottom: 1.25rem;
+            padding-bottom: 0.85rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .skill-cat-header h3 {
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+            font-family: var(--font-display);
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin: 0;
+        }
+        .skill-icon-wrap {
+            display: grid;
+            width: 38px;
+            height: 38px;
+            place-items: center;
+            border: 1px solid;
+            border-radius: 10px;
+            font-size: 1.05rem;
+            flex-shrink: 0;
+            transition: transform 300ms ease, box-shadow 300ms ease;
+        }
+        .skill-category:hover .skill-icon-wrap {
+            transform: scale(1.12) rotate(6deg);
+            box-shadow: 0 0 16px var(--cat-color, var(--primary));
+        }
+        .skill-count {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            padding: 0.22rem 0.6rem;
+            border: 1px solid rgba(255, 255, 255, 0.09);
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.04);
+            white-space: nowrap;
+        }
+        .skill-pills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.55rem;
+            align-content: flex-start;
+        }
+        .skill-pill {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.48rem;
+            padding: 0.42rem 0.78rem;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.038);
+            color: #dce5f5;
+            font-family: var(--font-body);
+            font-size: 0.82rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 250ms cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .pill-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--pill-accent, var(--primary));
+            box-shadow: 0 0 8px var(--pill-accent, var(--primary));
+            transition: transform 250ms ease, box-shadow 250ms ease;
+        }
+        .skill-pill:hover {
+            transform: translateY(-3px) scale(1.05);
+            border-color: var(--pill-accent, var(--primary));
+            background: rgba(255, 255, 255, 0.09);
+            color: #ffffff;
+            box-shadow: 0 8px 22px rgba(0, 0, 0, 0.4), 0 0 16px var(--pill-accent, var(--primary));
+        }
+        .skill-pill:hover .pill-dot {
+            transform: scale(1.45);
+            box-shadow: 0 0 14px var(--pill-accent, var(--primary));
+        }
 
         /* === ACHIEVEMENTS & CONTACT === */
         .achievements-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.25rem; }
@@ -399,10 +523,15 @@
         footer { padding: 1.75rem 0 2.25rem; color: #8592a9; font-size: 0.78rem; text-align: center; }
         footer .container { padding-top: 1.4rem; border-top: 1px solid rgba(196, 227, 255, 0.1); }
 
-        /* === ANIMATION SYSTEM === */
+        /* === ANIMATION & 3D VISUAL SYSTEM === */
         .reveal { opacity: 0; transform: translateY(26px); transition: opacity 700ms cubic-bezier(.2, .8, .2, 1), transform 700ms cubic-bezier(.2, .8, .2, 1); }
         .reveal.active { opacity: 1; transform: translateY(0); }
         .reveal-stagger > * { transition-delay: calc(var(--stagger, 0) * 85ms); }
+        .reveal.active .reveal-stagger > *,
+        .skill-category, .skill-category:hover, .skill-category::after,
+        .proj-card, .proj-card:hover, .glass-panel, .glass-panel:hover {
+            transition-delay: 0s !important;
+        }
         @keyframes drift { to { transform: translate(12vw, -6vh) scale(1.2); } }
         @keyframes float { 50% { transform: translateY(-18px) rotate(16deg); } }
         @keyframes pulse { 50% { box-shadow: 0 0 4px var(--glow); opacity: 0.65; } }
@@ -410,11 +539,738 @@
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes ripple { to { opacity: 0; transform: translate(-50%, -50%) scale(30); } }
 
+        /* === NEURAL CANVAS & CUSTOM CURSOR === */
+        .neural-canvas {
+            position: fixed;
+            inset: 0;
+            z-index: -3;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            opacity: 0.7;
+        }
+        @media (pointer: fine) {
+            body.custom-pointer-enabled,
+            body.custom-pointer-enabled a,
+            body.custom-pointer-enabled button,
+            body.custom-pointer-enabled .proj-card,
+            body.custom-pointer-enabled .skill-pill,
+            body.custom-pointer-enabled .tech-chip,
+            body.custom-pointer-enabled .social-btn,
+            body.custom-pointer-enabled .mtab {
+                cursor: none !important;
+            }
+            .custom-cursor {
+                position: fixed;
+                top: 0;
+                left: 0;
+                z-index: 9999;
+                width: 8px;
+                height: 8px;
+                border-radius: 50%;
+                background: var(--primary);
+                box-shadow: 0 0 10px var(--primary);
+                pointer-events: none;
+                transform: translate(-50%, -50%);
+                transition: opacity 250ms ease;
+                opacity: 0;
+            }
+            .cursor-follower {
+                position: fixed;
+                top: 0;
+                left: 0;
+                z-index: 9998;
+                width: 38px;
+                height: 38px;
+                border: 1.5px solid rgba(0, 229, 255, 0.45);
+                border-radius: 50%;
+                pointer-events: none;
+                transform: translate(-50%, -50%);
+                transition: opacity 250ms ease, width 250ms ease, height 250ms ease, border-color 250ms ease, background 250ms ease;
+                opacity: 0;
+                box-shadow: 0 0 15px rgba(0, 229, 255, 0.15);
+            }
+            body.pointer-ready .custom-cursor,
+            body.pointer-ready .cursor-follower { opacity: 1; }
+            .cursor-follower.hovering {
+                width: 54px;
+                height: 54px;
+                border-color: var(--glow);
+                background: rgba(100, 255, 218, 0.08);
+                box-shadow: 0 0 26px rgba(100, 255, 218, 0.3);
+            }
+        }
+        .click-spark {
+            position: fixed;
+            z-index: 9997;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--glow);
+            pointer-events: none;
+            box-shadow: 0 0 12px var(--glow);
+            transform: translate(-50%, -50%) scale(1);
+            animation: sparkFade 600ms cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
+        }
+        @keyframes sparkFade {
+            to {
+                opacity: 0;
+                transform: translate(var(--dx), var(--dy)) scale(0);
+            }
+        }
+
+        /* === 3D DEPTH LAYER & LASER SHIMMER === */
+        .tilt-card, .glass-panel, .terminal-card, .profile-shell {
+            transform-style: preserve-3d;
+            perspective: 1000px;
+        }
+        .tilt-card > *, .glass-panel > *, .terminal-card > * {
+            transform-style: preserve-3d;
+        }
+        .proj-card {
+            transform-style: preserve-3d;
+            perspective: 1000px;
+            position: relative;
+        }
+        .proj-card .proj-title { transform: translateZ(32px); transition: transform 300ms ease; }
+        .proj-card .proj-desc { transform: translateZ(20px); transition: transform 300ms ease; }
+        .proj-card .badge-row { transform: translateZ(24px); transition: transform 300ms ease; }
+        .proj-card .proj-metrics { transform: translateZ(30px); transition: transform 300ms ease; }
+        .proj-card .proj-footer { transform: translateZ(26px); transition: transform 300ms ease; }
+        .proj-card .proj-github-link { transform: translateZ(38px); }
+
+        .terminal-card { transform: translateZ(30px); }
+        .profile-orbit { transform: translateZ(-10px); }
+        .hero-image { transform: translateZ(20px); }
+
+        /* Dynamic Glare & Laser Edge Glow */
+        .glare-effect {
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            pointer-events: none;
+            background: radial-gradient(450px circle at var(--glare-x, 50%) var(--glare-y, 50%), rgba(255, 255, 255, 0.16), transparent 70%);
+            opacity: 0;
+            transition: opacity 300ms ease;
+            z-index: 8;
+            mix-blend-mode: overlay;
+        }
+        .proj-card:hover .glare-effect,
+        .glass-panel:hover .glare-effect {
+            opacity: 1;
+        }
+
+        .proj-card::after, .glass-panel::after {
+            content: "";
+            position: absolute;
+            inset: -1px;
+            border-radius: inherit;
+            padding: 1px;
+            background: linear-gradient(90deg, transparent, var(--primary), var(--secondary), var(--glow), transparent);
+            background-size: 300% 100%;
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            opacity: 0;
+            transition: opacity 400ms ease;
+            pointer-events: none;
+            z-index: 9;
+        }
+        .proj-card:hover::after, .glass-panel:hover::after {
+            opacity: 1;
+            animation: laserBorder 3s linear infinite;
+        }
+        @keyframes laserBorder {
+            0% { background-position: 0% 0%; }
+            100% { background-position: 300% 0%; }
+        }
+
+        /* 3D Floating Geometry Additions */
+        .shape-four {
+            top: 72%;
+            left: 82%;
+            width: 42px;
+            height: 42px;
+            border: 1px dashed rgba(0, 229, 255, 0.28);
+            border-radius: 8px;
+            animation: float3D 12s ease-in-out infinite;
+        }
+        .shape-five {
+            top: 36%;
+            left: 88%;
+            width: 30px;
+            height: 30px;
+            border: 1px solid rgba(139, 92, 246, 0.35);
+            transform: rotate(30deg);
+            animation: float3D 10s ease-in-out infinite reverse;
+        }
+        @keyframes float3D {
+            0%, 100% { transform: translateY(0) rotateX(0deg) rotateY(0deg) rotateZ(0deg); }
+            50% { transform: translateY(-26px) rotateX(45deg) rotateY(90deg) rotateZ(180deg); }
+        }
+
+        /* Gradient Text Motion Sweep */
+        .gradient-text {
+            display: inline-block;
+            background: linear-gradient(110deg, #ffffff 0%, #a9f5ff 25%, #6c63ff 50%, #10d9a0 75%, #ffffff 100%);
+            background-size: 220% auto;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: textShimmer 7s linear infinite;
+        }
+        @keyframes textShimmer {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 220% 50%; }
+        }
+
+        /* Enhanced Modal 3D Entry Animation */
+        @keyframes modal3DIn {
+            from {
+                opacity: 0;
+                transform: perspective(1000px) rotateX(-12deg) translateY(45px) scale(0.93);
+            }
+            to {
+                opacity: 1;
+                transform: perspective(1000px) rotateX(0deg) translateY(0) scale(1);
+            }
+        }
+        .modal-overlay.active .modal-box {
+            animation: modal3DIn 420ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        /* === ENHANCED PROJECTS & BADGE SYSTEM === */
+        .proj-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1.5rem;
+        }
+        .proj-card {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            min-height: 100%;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            background: rgba(13, 19, 43, 0.65);
+            -webkit-backdrop-filter: blur(18px);
+            backdrop-filter: blur(18px);
+            cursor: pointer;
+            transition: transform 300ms cubic-bezier(.2, .8, .2, 1), border-color 300ms, box-shadow 300ms;
+        }
+        .proj-card:hover {
+            transform: translateY(-6px);
+            border-color: rgba(91, 141, 238, 0.45);
+            box-shadow: 0 20px 45px rgba(0, 0, 0, 0.42), 0 0 30px rgba(91, 141, 238, 0.12);
+        }
+        .proj-banner {
+            height: 6px;
+            width: 100%;
+            background: var(--grad, linear-gradient(90deg, #5b8dee, #8b5cf6));
+        }
+        .proj-card {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            background: rgba(13, 19, 43, 0.65);
+            -webkit-backdrop-filter: blur(18px);
+            backdrop-filter: blur(18px);
+            cursor: pointer;
+            transition: transform 300ms cubic-bezier(.2, .8, .2, 1), border-color 300ms, box-shadow 300ms;
+        }
+        .proj-body {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            padding: 1.5rem;
+        }
+        .proj-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-bottom: 0.85rem;
+        }
+        .proj-title-box {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .proj-title {
+            font-family: var(--font-display);
+            font-size: 1.45rem;
+            font-weight: 800;
+            color: var(--text-main);
+            letter-spacing: -0.01em;
+            line-height: 1.2;
+        }
+        .proj-tagline {
+            font-family: var(--font-mono);
+            font-size: 0.76rem;
+            font-weight: 600;
+            letter-spacing: 0.01em;
+            line-height: 1.35;
+        }
+        .proj-github-link {
+            display: inline-grid;
+            width: 36px;
+            height: 36px;
+            place-items: center;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--text-muted);
+            transition: all var(--transition);
+            flex-shrink: 0;
+        }
+        .proj-github-link:hover {
+            border-color: var(--primary);
+            background: rgba(0, 229, 255, 0.12);
+            color: var(--primary);
+            transform: scale(1.05);
+        }
+        .proj-desc {
+            flex-grow: 1;
+            margin-bottom: 1.15rem;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            line-height: 1.6;
+            min-height: 4.8rem;
+        }
+        .badge-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-content: flex-start;
+            gap: 0.4rem;
+            margin-bottom: 1.1rem;
+            min-height: 52px;
+        }
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.6rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--text-muted);
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+        .badge-blue {
+            border-color: rgba(91, 141, 238, 0.35);
+            background: rgba(91, 141, 238, 0.11);
+            color: #70a1ff;
+        }
+        .badge-purple {
+            border-color: rgba(139, 92, 246, 0.35);
+            background: rgba(139, 92, 246, 0.11);
+            color: #b87cf8;
+        }
+        .badge-green {
+            border-color: rgba(16, 217, 160, 0.35);
+            background: rgba(16, 217, 160, 0.11);
+            color: #10d9a0;
+        }
+        .proj-metrics {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.35rem;
+            margin-bottom: 1.25rem;
+            padding: 0.75rem 0.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            background: rgba(0, 0, 0, 0.32);
+            text-align: center;
+        }
+        .pmetric {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .pmetric-val {
+            font-family: var(--font-mono);
+            font-size: 0.92rem;
+            font-weight: 700;
+            color: var(--val-color, var(--primary));
+        }
+        .pmetric-lbl {
+            margin-top: 3px;
+            color: var(--text-muted);
+            font-size: 0.62rem;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+            line-height: 1.25;
+        }
+        .proj-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: auto;
+            padding-top: 0.9rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.07);
+        }
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: #10d9a0;
+            font-family: var(--font-mono);
+            font-size: 0.74rem;
+            font-weight: 500;
+        }
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #10d9a0;
+            box-shadow: 0 0 8px #10d9a0;
+        }
+        .proj-cta {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            color: var(--primary);
+            font-size: 0.84rem;
+            font-weight: 700;
+            transition: gap var(--transition), color var(--transition);
+        }
+        .proj-card:hover .proj-cta {
+            gap: 0.65rem;
+            color: var(--glow);
+        }
+        .proj-cta i {
+            transition: transform 200ms ease;
+        }
+        .proj-card:hover .proj-cta i {
+            transform: translateX(3px);
+        }
+
+        /* === MODAL SYSTEM === */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+            background: rgba(3, 5, 14, 0.86);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 300ms ease;
+            -webkit-backdrop-filter: blur(12px);
+            backdrop-filter: blur(12px);
+        }
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .modal-wrap {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            max-width: 920px;
+            max-height: 90vh;
+        }
+        .modal-box {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid var(--border-bright);
+            border-top: 4px solid var(--modal-accent, var(--primary));
+            border-radius: 20px;
+            background: rgba(8, 13, 33, 0.96);
+            box-shadow: 0 28px 70px rgba(0, 0, 0, 0.65), 0 0 40px rgba(91, 141, 238, 0.15);
+            transform: translateY(30px);
+            transition: transform 300ms cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .modal-overlay.active .modal-box {
+            transform: translateY(0);
+            animation: modalIn 350ms cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .modal-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1.2rem 1.6rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(0, 0, 0, 0.22);
+        }
+        .modal-title-group h3 {
+            font-size: 1.45rem;
+            font-weight: 700;
+        }
+        .modal-subtitle {
+            margin-top: 2px;
+            color: var(--text-muted);
+            font-family: var(--font-mono);
+            font-size: 0.78rem;
+        }
+        .modal-close {
+            display: grid;
+            width: 36px;
+            height: 36px;
+            place-items: center;
+            border: 1px solid var(--border);
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all var(--transition);
+        }
+        .modal-close:hover {
+            border-color: var(--primary);
+            background: rgba(255, 255, 255, 0.15);
+            color: var(--text-main);
+            transform: rotate(90deg);
+        }
+        .modal-tabs {
+            display: flex;
+            gap: 0.4rem;
+            overflow-x: auto;
+            padding: 0 1.6rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(0, 0, 0, 0.15);
+        }
+        .mtab {
+            position: relative;
+            padding: 0.85rem 1.15rem;
+            border: none;
+            background: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 0.86rem;
+            font-weight: 600;
+            white-space: nowrap;
+            transition: color var(--transition);
+        }
+        .mtab:hover {
+            color: var(--text-main);
+        }
+        .mtab.active {
+            color: var(--text-main);
+        }
+        .mtab.active::after {
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            height: 3px;
+            border-radius: 3px 3px 0 0;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            content: "";
+        }
+        .modal-content {
+            max-height: calc(90vh - 140px);
+            overflow-y: auto;
+            padding: 1.6rem;
+        }
+        .mpane {
+            display: none;
+            animation: fadeIn 250ms ease forwards;
+        }
+        .mpane.active {
+            display: block;
+        }
+
+        /* === MODAL CONTENT STYLES === */
+        .overview-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+        .overview-col {
+            padding: 1.25rem;
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.025);
+        }
+        .overview-col h4 {
+            display: flex;
+            align-items: center;
+            gap: 0.55rem;
+            margin-bottom: 0.7rem;
+            color: var(--primary);
+            font-size: 1.05rem;
+        }
+        .overview-col p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+        .highlight-box {
+            margin-bottom: 1.5rem;
+            padding: 1.25rem;
+            border: 1px solid rgba(91, 141, 238, 0.28);
+            border-radius: 14px;
+            background: rgba(91, 141, 238, 0.07);
+        }
+        .highlight-box h4 {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+            color: #70a1ff;
+            font-size: 1.05rem;
+        }
+        .highlight-list {
+            padding-left: 0;
+            list-style: none;
+        }
+        .highlight-list li {
+            position: relative;
+            margin-bottom: 0.55rem;
+            padding-left: 1.45rem;
+            color: var(--text-main);
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+        .highlight-list li::before {
+            position: absolute;
+            left: 0;
+            color: var(--glow);
+            content: "✦";
+        }
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .metric-card {
+            padding: 1.25rem;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 14px;
+            background: rgba(0, 0, 0, 0.28);
+            text-align: center;
+        }
+        .metric-big {
+            margin-bottom: 0.25rem;
+            background: linear-gradient(135deg, var(--glow), var(--primary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            font-family: var(--font-mono);
+            font-size: 2.8rem;
+            font-weight: 700;
+            line-height: 1.1;
+            text-shadow: 0 0 25px rgba(0, 229, 255, 0.22);
+        }
+        .metric-card p {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+        .chart-wrap {
+            position: relative;
+            width: 100%;
+            height: 320px;
+            margin-top: 1.25rem;
+            padding: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            border-radius: 14px;
+            background: rgba(0, 0, 0, 0.32);
+        }
+        .arch-wrap {
+            width: 100%;
+            overflow-x: auto;
+            margin-bottom: 1.25rem;
+            padding: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.09);
+            border-radius: 14px;
+            background: rgba(4, 7, 20, 0.72);
+            -webkit-overflow-scrolling: touch;
+        }
+        .arch-svg {
+            width: 100%;
+            min-width: 780px;
+            height: auto;
+            display: block;
+        }
+        .arch-layer-label {
+            font-family: var(--font-mono);
+            font-size: 9.5px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            fill: #8592a9;
+            text-anchor: middle;
+        }
+        .arch-label {
+            font-family: var(--font-body);
+            font-size: 10.5px;
+            font-weight: 700;
+            fill: #f8fbff;
+            text-anchor: middle;
+        }
+        .arch-sublabel {
+            font-family: var(--font-mono);
+            font-size: 8.5px;
+            fill: #aab5ca;
+            text-anchor: middle;
+        }
+        .arch-flow-path {
+            stroke-dasharray: 6 4;
+            animation: flowArrows 1.1s linear infinite;
+        }
+        @keyframes flowArrows {
+            from { stroke-dashoffset: 20; }
+            to { stroke-dashoffset: 0; }
+        }
+        .case-timeline {
+            display: flex;
+            flex-direction: column;
+            gap: 1.1rem;
+        }
+        .case-step {
+            position: relative;
+            padding: 1.25rem;
+            padding-left: 1.5rem;
+            border-left: 3px solid var(--step-accent, var(--primary));
+            border-radius: 0 14px 14px 0;
+            background: rgba(255, 255, 255, 0.025);
+        }
+        .case-step-num {
+            margin-bottom: 0.35rem;
+            color: var(--step-accent, var(--primary));
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+        .case-step h4 {
+            margin-bottom: 0.45rem;
+            font-size: 1.1rem;
+        }
+        .case-step p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        /* Modal Animations */
+        @keyframes modalIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
         /* === RESPONSIVE === */
         @media (max-width: 1000px) {
             .hero-grid { grid-template-columns: minmax(0, 1fr) minmax(290px, 0.74fr); gap: 2.5rem; }
-            .projects-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .projects-grid, .proj-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
             .skills-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .modal-wrap { max-width: 95%; }
+            .proj-metrics { grid-template-columns: repeat(2, 1fr); }
         }
         @media (max-width: 800px) {
             .navbar { top: 0.65rem; }
@@ -433,7 +1289,9 @@
             .hero-actions, .tech-row { justify-content: center; }
             .hero-visual { width: min(100%, 440px); margin-top: 1rem; }
             .terminal-card { margin: -2rem auto 0; }
-            .projects-grid, .skills-grid { grid-template-columns: 1fr; }
+            .projects-grid, .proj-grid, .skills-grid { grid-template-columns: 1fr; }
+            .overview-grid { grid-template-columns: 1fr; }
+            .modal-content { padding: 1.1rem; }
         }
         @media (max-width: 560px) {
             .container { width: min(100% - 2rem, 1180px); }
@@ -445,6 +1303,9 @@
             .achievements-grid { grid-template-columns: 1fr; }
             .timeline { padding-left: 2.05rem; }
             .timeline-dot { left: 5px; }
+            .metrics-grid { grid-template-columns: 1fr; }
+            .modal-tabs { padding: 0 0.8rem; }
+            .mtab { padding: 0.75rem 0.85rem; font-size: 0.78rem; }
         }
         @media (prefers-reduced-motion: reduce) {
             html { scroll-behavior: auto; }
@@ -456,12 +1317,17 @@
 <body>
     <!-- Ambient visual layer -->
     <div class="ambient" aria-hidden="true"></div>
+    <canvas id="neural-canvas" class="neural-canvas" aria-hidden="true"></canvas>
     <div class="grid-overlay" aria-hidden="true"></div>
     <div class="noise-overlay" aria-hidden="true"></div>
     <div class="cursor-glow" aria-hidden="true"></div>
+    <div id="custom-cursor" class="custom-cursor" aria-hidden="true"></div>
+    <div id="cursor-follower" class="cursor-follower" aria-hidden="true"></div>
     <span class="shape shape-one" aria-hidden="true"></span>
     <span class="shape shape-two" aria-hidden="true"></span>
     <span class="shape shape-three" aria-hidden="true"></span>
+    <span class="shape shape-four" aria-hidden="true"></span>
+    <span class="shape shape-five" aria-hidden="true"></span>
 
     <!-- Floating navigation -->
     <header class="navbar" id="site-header">
@@ -562,65 +1428,841 @@
         </section>
 
         <!-- Projects -->
-        <section class="reveal" id="projects">
-            <div class="container">
-                <div class="section-heading">
-                    <p class="eyebrow">03 / Selected Work</p>
-                    <h2 class="section-title">Featured Projects</h2>
-                    <p class="section-lead">Production-minded systems built around applied AI, high-signal automation, and reliable user experiences.</p>
-                </div>
-                <div class="projects-grid reveal-stagger">
-                    <article class="glass-panel project-card tilt-card" style="--stagger: 0">
-                        <div class="project-art art-factory" aria-hidden="true"></div>
-                        <div class="project-header">
-                            <h3 class="project-title">FactoryMind</h3>
-                            <a href="https://github.com/Mandeep15686/FactoryMind-Multimodal-Industrial-Intelligence-Platform" target="_blank" rel="noopener noreferrer" class="project-link" aria-label="Open FactoryMind GitHub repository"><i class="fa-brands fa-github" aria-hidden="true"></i></a>
-                        </div>
-                        <p class="project-desc">Multimodal industrial AI platform using Graph RAG to process sensor telemetry, machinery images, and logs for automated fault detection. Deployed on AWS EKS achieving <span class="highlight">230 ms avg inference latency</span> and <span class="highlight">~38% reduction</span> in manual fault-flagging time.</p>
-                        <div class="tech-stack">
-                            <span class="tech-badge">Python</span><span class="tech-badge">LangGraph</span><span class="tech-badge">HuggingFace</span><span class="tech-badge">FastAPI</span><span class="tech-badge">AWS EKS</span>
-                        </div>
-                    </article>
-                    <article class="glass-panel project-card tilt-card" style="--stagger: 1">
-                        <div class="project-art art-meridian" aria-hidden="true"></div>
-                        <div class="project-header">
-                            <h3 class="project-title">Meridian</h3>
-                            <a href="https://github.com/Mandeep15686/Meridian" target="_blank" rel="noopener noreferrer" class="project-link" aria-label="Open Meridian GitHub repository"><i class="fa-brands fa-github" aria-hidden="true"></i></a>
-                        </div>
-                        <p class="project-desc">4-agent compliance automation platform with hybrid RAG to auto-detect gaps in regulatory docs and board audio (Whisper ASR). Achieved gap-detection <span class="highlight">F1 of 0.87</span>, RAGAS faithfulness <span class="highlight">0.91</span>, and <span class="highlight">96.4% routing accuracy</span>.</p>
-                        <div class="tech-stack">
-                            <span class="tech-badge">LangGraph</span><span class="tech-badge">LlamaIndex</span><span class="tech-badge">Whisper</span><span class="tech-badge">pgvector</span><span class="tech-badge">GCP</span>
-                        </div>
-                    </article>
-                    <article class="glass-panel project-card tilt-card" style="--stagger: 2">
-                        <div class="project-art art-fitness" aria-hidden="true"></div>
-                        <div class="project-header">
-                            <h3 class="project-title">AI Fitness Coach</h3>
-                            <a href="https://github.com/Mandeep15686/AI-Fitness-Coach" target="_blank" rel="noopener noreferrer" class="project-link" aria-label="Open AI Fitness Coach GitHub repository"><i class="fa-brands fa-github" aria-hidden="true"></i></a>
-                        </div>
-                        <p class="project-desc">Cross-platform app utilizing Flutter and ML Kit for on-device pose estimation, achieving <span class="highlight">~97% rep-counting accuracy</span>. Built a secure FastAPI backend with AES-256 encryption and <span class="highlight">sub-140 ms</span> API response times.</p>
-                        <div class="tech-stack">
-                            <span class="tech-badge">Flutter</span><span class="tech-badge">ML Kit</span><span class="tech-badge">FastAPI</span><span class="tech-badge">Firebase</span><span class="tech-badge">Docker</span>
-                        </div>
-                    </article>
-                </div>
+        <section id="projects" class="section reveal">
+          <div class="container">
+            <div class="section-heading">
+              <p class="eyebrow">Case Studies</p>
+              <h2 class="section-title">Featured <span class="gradient-text">Projects</span></h2>
+              <p class="section-lead">Production-grade AI platforms with real metrics. Click any project card below to explore the architecture, implementation, and results.</p>
             </div>
+
+            <div class="proj-grid reveal-stagger">
+
+              <!-- FACTORYMIND -->
+              <article class="proj-card tilt-card" onclick="openModal('fm')" style="--stagger: 0; --grad:linear-gradient(90deg,var(--accent),var(--accent2))" tabindex="0" aria-label="Open FactoryMind Case Study">
+                <div class="proj-banner"></div>
+                <div class="proj-body">
+                  <div class="proj-header">
+                    <div class="proj-title-box">
+                      <h3 class="proj-title">FactoryMind</h3>
+                      <span class="proj-tagline" style="color:var(--accent)">Multimodal Industrial Intelligence Platform</span>
+                    </div>
+                    <div class="proj-links">
+                      <a href="https://github.com/Mandeep15686/FactoryMind-Multimodal-Industrial-Intelligence-Platform" target="_blank" rel="noopener noreferrer" class="proj-github-link" onclick="event.stopPropagation()" aria-label="Open FactoryMind GitHub repository">
+                        <i class="fa-brands fa-github" aria-hidden="true"></i>
+                      </a>
+                    </div>
+                  </div>
+                  <p class="proj-desc">Multimodal industrial AI using Graph RAG (LangGraph + HuggingFace) to process sensor telemetry, machinery images, and maintenance logs for automated fault detection. Deployed on AWS EKS with CI/CD.</p>
+                  <div class="badge-row">
+                    <span class="badge badge-blue">LangGraph</span>
+                    <span class="badge badge-blue">Graph RAG</span>
+                    <span class="badge badge-blue">HuggingFace</span>
+                    <span class="badge">FastAPI</span>
+                    <span class="badge">OpenCV</span>
+                    <span class="badge">PostgreSQL</span>
+                    <span class="badge">Docker</span>
+                    <span class="badge">AWS EKS</span>
+                  </div>
+                  <div class="proj-metrics">
+                    <div class="pmetric"><span class="metric-val pmetric-val" style="color:var(--accent3)">230 ms</span><span class="pmetric-lbl">Avg. Inference</span></div>
+                    <div class="pmetric"><span class="metric-val pmetric-val" style="color:var(--accent)">38%</span><span class="pmetric-lbl">Fault Reduction</span></div>
+                    <div class="pmetric"><span class="metric-val pmetric-val" style="color:var(--accent2)">90%</span><span class="pmetric-lbl">F1-Score</span></div>
+                    <div class="pmetric"><span class="metric-val pmetric-val" style="color:var(--orange)">EKS</span><span class="pmetric-lbl">Deployment</span></div>
+                  </div>
+                  <div class="proj-footer">
+                    <span class="status-badge"><span class="status-dot"></span>Production Deployed</span>
+                    <span class="proj-cta">View Case Study <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></span>
+                  </div>
+                </div>
+              </article>
+
+              <!-- MERIDIAN -->
+              <article class="proj-card tilt-card" onclick="openModal('mer')" style="--stagger: 1; --grad:linear-gradient(90deg,var(--accent2),#ec4899)" tabindex="0" aria-label="Open Meridian Case Study">
+                <div class="proj-banner"></div>
+                <div class="proj-body">
+                  <div class="proj-header">
+                    <div class="proj-title-box">
+                      <h3 class="proj-title">Meridian</h3>
+                      <span class="proj-tagline" style="color:var(--accent2)">Multimodal Regulatory Intelligence &amp; Compliance</span>
+                    </div>
+                    <div class="proj-links">
+                      <a href="https://github.com/Mandeep15686/Meridian" target="_blank" rel="noopener noreferrer" class="proj-github-link" onclick="event.stopPropagation()" aria-label="Open Meridian GitHub repository">
+                        <i class="fa-brands fa-github" aria-hidden="true"></i>
+                      </a>
+                    </div>
+                  </div>
+                  <p class="proj-desc">4-agent compliance automation platform detecting GDPR/SOC-2/ISO-27001/SEC gaps from regulatory PDFs, board audio (Whisper ASR), and audit tables. Hybrid RAG with dense + BM25 + reranking.</p>
+                  <div class="badge-row">
+                    <span class="badge badge-purple">LangGraph</span>
+                    <span class="badge badge-purple">LlamaIndex</span>
+                    <span class="badge badge-purple">Whisper ASR</span>
+                    <span class="badge">pgvector</span>
+                    <span class="badge">HuggingFace</span>
+                    <span class="badge">Celery</span>
+                    <span class="badge">GCP Cloud Run</span>
+                  </div>
+                  <div class="proj-metrics">
+                    <div class="pmetric"><span class="metric-val pmetric-val" style="color:var(--accent2)">0.87</span><span class="pmetric-lbl">Gap Detection F1</span></div>
+                    <div class="pmetric"><span class="metric-val pmetric-val" style="color:var(--accent3)">0.91</span><span class="pmetric-lbl">RAGAS Faithfulness</span></div>
+                    <div class="pmetric"><span class="metric-val pmetric-val" style="color:var(--accent)">96.4%</span><span class="pmetric-lbl">Routing Accuracy</span></div>
+                    <div class="pmetric"><span class="metric-val pmetric-val" style="color:var(--orange)">4</span><span class="pmetric-lbl">AI Agents</span></div>
+                  </div>
+                  <div class="proj-footer">
+                    <span class="status-badge"><span class="status-dot"></span>Multi-Agent System</span>
+                    <span class="proj-cta">View Case Study <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></span>
+                  </div>
+                </div>
+              </article>
+
+              <!-- AI FITNESS COACH -->
+              <article class="proj-card tilt-card" onclick="openModal('fit')" style="--stagger: 2; --grad:linear-gradient(90deg,var(--accent3),#0ea5e9)" tabindex="0" aria-label="Open AI Fitness Coach Case Study">
+                <div class="proj-banner"></div>
+                <div class="proj-body">
+                  <div class="proj-header">
+                    <div class="proj-title-box">
+                      <h3 class="proj-title">AI Fitness Coach</h3>
+                      <span class="proj-tagline" style="color:var(--accent3)">Cross-Platform Fitness Application</span>
+                    </div>
+                    <div class="proj-links">
+                      <a href="https://github.com/Mandeep15686/AI-Fitness-Coach" target="_blank" rel="noopener noreferrer" class="proj-github-link" onclick="event.stopPropagation()" aria-label="Open AI Fitness Coach GitHub repository">
+                        <i class="fa-brands fa-github" aria-hidden="true"></i>
+                      </a>
+                    </div>
+                  </div>
+                  <p class="proj-desc">Cross-platform AI fitness app (Android &amp; iOS) using Flutter with ML Kit on-device pose estimation achieving ~97% rep-counting accuracy across 8 exercise types. TDD with 91% test coverage.</p>
+                  <div class="badge-row">
+                    <span class="badge badge-green">Flutter</span>
+                    <span class="badge badge-green">ML Kit</span>
+                    <span class="badge badge-green">Pose Estimation</span>
+                    <span class="badge">FastAPI</span>
+                    <span class="badge">Firebase</span>
+                    <span class="badge">AES-256</span>
+                    <span class="badge">Docker</span>
+                  </div>
+                  <div class="proj-metrics">
+                    <div class="pmetric"><span class="metric-val pmetric-val" style="color:var(--accent3)">97%</span><span class="pmetric-lbl">Rep Accuracy</span></div>
+                    <div class="pmetric"><span class="metric-val pmetric-val" style="color:var(--accent)">91%</span><span class="pmetric-lbl">Test Coverage</span></div>
+                    <div class="pmetric"><span class="metric-val pmetric-val" style="color:var(--accent2)">140 ms</span><span class="pmetric-lbl">API Response</span></div>
+                    <div class="pmetric"><span class="metric-val pmetric-val" style="color:var(--orange)">8</span><span class="pmetric-lbl">Exercise Types</span></div>
+                  </div>
+                  <div class="proj-footer">
+                    <span class="status-badge"><span class="status-dot"></span>iOS &amp; Android</span>
+                    <span class="proj-cta">View Case Study <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></span>
+                  </div>
+                </div>
+              </article>
+
+            </div>
+          </div>
         </section>
+
+        <!-- Modals Container -->
+        <div id="modals-container">
+          <!-- MODAL: FACTORYMIND -->
+          <div class="modal-overlay" id="modal-fm" role="dialog" aria-modal="true" aria-labelledby="fm-title">
+            <div class="modal-wrap">
+              <div class="modal-box" style="--modal-accent: var(--accent)">
+                <div class="modal-top">
+                  <div class="modal-title-group">
+                    <h3 id="fm-title">FactoryMind</h3>
+                    <p class="modal-subtitle">Multimodal Industrial Intelligence Platform · Python · LangGraph · AWS EKS</p>
+                  </div>
+                  <button class="modal-close" onclick="closeModal('fm')" aria-label="Close modal"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <div class="modal-tabs">
+                  <button class="mtab active" data-tab="overview" onclick="switchMTab('fm','overview')">Overview</button>
+                  <button class="mtab" data-tab="arch" onclick="switchMTab('fm','arch')">Architecture</button>
+                  <button class="mtab" data-tab="metrics" onclick="switchMTab('fm','metrics')">Metrics</button>
+                  <button class="mtab" data-tab="casestudy" onclick="switchMTab('fm','casestudy')">Case Study</button>
+                </div>
+                <div class="modal-content">
+                  <!-- Overview -->
+                  <div class="mpane active" id="fm-overview" data-pane="overview">
+                    <div class="overview-grid">
+                      <div class="overview-col">
+                        <h4><i class="fa-solid fa-triangle-exclamation"></i> Problem</h4>
+                        <p>Industrial facilities rely on manual fault inspection — slow, error-prone, and costly. Sensor data, machine images, and maintenance logs exist in silos. No unified system correlates them for proactive fault detection.</p>
+                      </div>
+                      <div class="overview-col">
+                        <h4><i class="fa-solid fa-lightbulb"></i> Solution</h4>
+                        <p>A production-grade multimodal AI platform that unifies sensor telemetry, computer vision, and document analysis into a single Graph RAG pipeline orchestrated by LangGraph, deployed on AWS EKS.</p>
+                      </div>
+                    </div>
+                    <div class="highlight-box">
+                      <h4><i class="fa-solid fa-star"></i> Key Achievements</h4>
+                      <ul class="highlight-list">
+                        <li>230ms average inference latency across all modalities on production traffic</li>
+                        <li>38% reduction in manual fault-flagging time within 2 months of deployment</li>
+                        <li>90% F1-score on fault classification benchmark dataset</li>
+                        <li>Zero-downtime deployment on AWS EKS via GitHub Actions CI/CD pipeline</li>
+                        <li>Graph RAG architecture enabling cross-modal reasoning between sensors, images, and docs</li>
+                      </ul>
+                    </div>
+                    <div style="margin-top:24px">
+                      <div class="badge-row">
+                        <span class="badge badge-blue">Python</span><span class="badge badge-blue">LangGraph</span><span class="badge badge-blue">LangChain</span><span class="badge badge-blue">HuggingFace</span><span class="badge">FastAPI</span><span class="badge">OpenCV</span><span class="badge">PostgreSQL</span><span class="badge">Docker</span><span class="badge">AWS EKS</span><span class="badge">GitHub Actions</span>
+                      </div>
+                    </div>
+                  </div>
+                  <!-- Architecture -->
+                  <div class="mpane" id="fm-arch" data-pane="arch">
+                    <p style="color:var(--text2);font-size:.88rem;margin-bottom:20px">System architecture showing data flow from multimodal inputs through Graph RAG engine to production deployment.</p>
+                    <div class="arch-wrap">
+                      <svg class="arch-svg" viewBox="0 0 820 320" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                          <marker id="arr-fm" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                            <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#00e5ff"/>
+                          </marker>
+                          <marker id="arr-fm2" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                            <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#10d9a0"/>
+                          </marker>
+                        </defs>
+                        <!-- Layer headers -->
+                        <text x="80" y="20" class="arch-layer-label">DATA INPUTS</text>
+                        <text x="260" y="20" class="arch-layer-label">PROCESSING</text>
+                        <text x="475" y="20" class="arch-layer-label">LANGGRAPH AI ENGINE</text>
+                        <text x="695" y="20" class="arch-layer-label">OUTPUT &amp; DEPLOYMENT</text>
+
+                        <!-- Animated Data Flow Paths -->
+                        <path d="M 150 62 L 185 62" stroke="rgba(0,229,255,0.2)" stroke-width="1.5" marker-end="url(#arr-fm)" fill="none"/>
+                        <path d="M 150 62 L 185 62" class="arch-flow-path" stroke="#00e5ff" stroke-width="1.5" fill="none"/>
+
+                        <path d="M 150 122 L 185 122" stroke="rgba(0,229,255,0.2)" stroke-width="1.5" marker-end="url(#arr-fm)" fill="none"/>
+                        <path d="M 150 122 L 185 122" class="arch-flow-path" stroke="#00e5ff" stroke-width="1.5" fill="none"/>
+
+                        <path d="M 150 182 L 185 182" stroke="rgba(0,229,255,0.2)" stroke-width="1.5" marker-end="url(#arr-fm)" fill="none"/>
+                        <path d="M 150 182 L 185 182" class="arch-flow-path" stroke="#00e5ff" stroke-width="1.5" fill="none"/>
+
+                        <path d="M 335 62 L 370 100" stroke="rgba(139,92,246,0.25)" stroke-width="1.5" marker-end="url(#arr-fm)" fill="none"/>
+                        <path d="M 335 62 L 370 100" class="arch-flow-path" stroke="#8b5cf6" stroke-width="1.5" fill="none"/>
+
+                        <path d="M 335 122 L 370 110" stroke="rgba(139,92,246,0.25)" stroke-width="1.5" marker-end="url(#arr-fm)" fill="none"/>
+                        <path d="M 335 122 L 370 110" class="arch-flow-path" stroke="#8b5cf6" stroke-width="1.5" fill="none"/>
+
+                        <path d="M 335 182 L 370 172" stroke="rgba(139,92,246,0.25)" stroke-width="1.5" marker-end="url(#arr-fm)" fill="none"/>
+                        <path d="M 335 182 L 370 172" class="arch-flow-path" stroke="#8b5cf6" stroke-width="1.5" fill="none"/>
+
+                        <path d="M 580 106 L 615 62" stroke="rgba(16,217,160,0.25)" stroke-width="1.5" marker-end="url(#arr-fm2)" fill="none"/>
+                        <path d="M 580 106 L 615 62" class="arch-flow-path" stroke="#10d9a0" stroke-width="1.5" fill="none"/>
+
+                        <path d="M 580 182 L 615 122" stroke="rgba(16,217,160,0.25)" stroke-width="1.5" marker-end="url(#arr-fm2)" fill="none"/>
+                        <path d="M 580 182 L 615 122" class="arch-flow-path" stroke="#10d9a0" stroke-width="1.5" fill="none"/>
+
+                        <path d="M 695 144 L 695 182" stroke="rgba(245,158,11,0.25)" stroke-width="1.5" marker-end="url(#arr-fm)" fill="none"/>
+                        <path d="M 695 144 L 695 182" class="arch-flow-path" stroke="#f59e0b" stroke-width="1.5" fill="none"/>
+
+                        <path d="M 695 226 L 695 258" stroke="rgba(91,141,238,0.25)" stroke-width="1.5" marker-end="url(#arr-fm)" fill="none"/>
+                        <path d="M 695 226 L 695 258" class="arch-flow-path" stroke="#5b8dee" stroke-width="1.5" fill="none"/>
+
+                        <!-- Nodes Column 1: Input -->
+                        <rect x="10" y="40" width="140" height="44" rx="8" fill="rgba(91,141,238,0.08)" stroke="rgba(91,141,238,0.4)" stroke-width="1"/>
+                        <text x="80" y="58" class="arch-label">Sensor Telemetry</text>
+                        <text x="80" y="72" class="arch-sublabel">IoT / SCADA Streams</text>
+
+                        <rect x="10" y="100" width="140" height="44" rx="8" fill="rgba(91,141,238,0.08)" stroke="rgba(91,141,238,0.4)" stroke-width="1"/>
+                        <text x="80" y="118" class="arch-label">Machinery Images</text>
+                        <text x="80" y="132" class="arch-sublabel">Visual Inspection Feeds</text>
+
+                        <rect x="10" y="160" width="140" height="44" rx="8" fill="rgba(91,141,238,0.08)" stroke="rgba(91,141,238,0.4)" stroke-width="1"/>
+                        <text x="80" y="178" class="arch-label">Maintenance Logs</text>
+                        <text x="80" y="192" class="arch-sublabel">PDF &amp; Text Records</text>
+
+                        <!-- Nodes Column 2: Processing -->
+                        <rect x="185" y="40" width="150" height="44" rx="8" fill="rgba(139,92,246,0.08)" stroke="rgba(139,92,246,0.4)" stroke-width="1"/>
+                        <text x="260" y="58" class="arch-label">Anomaly Detector</text>
+                        <text x="260" y="72" class="arch-sublabel">Threshold + ML Rules</text>
+
+                        <rect x="185" y="100" width="150" height="44" rx="8" fill="rgba(139,92,246,0.08)" stroke="rgba(139,92,246,0.4)" stroke-width="1"/>
+                        <text x="260" y="118" class="arch-label">OpenCV Processor</text>
+                        <text x="260" y="132" class="arch-sublabel">Feature Extraction</text>
+
+                        <rect x="185" y="160" width="150" height="44" rx="8" fill="rgba(139,92,246,0.08)" stroke="rgba(139,92,246,0.4)" stroke-width="1"/>
+                        <text x="260" y="178" class="arch-label">Doc Embedder</text>
+                        <text x="260" y="192" class="arch-sublabel">HuggingFace Encoder</text>
+
+                        <!-- Nodes Column 3: AI Engine -->
+                        <rect x="370" y="78" width="210" height="54" rx="8" fill="rgba(16,217,160,0.08)" stroke="rgba(16,217,160,0.45)" stroke-width="1.5"/>
+                        <text x="475" y="99" class="arch-label" style="fill:#64ffda">LangGraph Orchestrator</text>
+                        <text x="475" y="115" class="arch-sublabel">State Machine &amp; Routing</text>
+
+                        <rect x="370" y="154" width="210" height="48" rx="8" fill="rgba(16,217,160,0.08)" stroke="rgba(16,217,160,0.4)" stroke-width="1"/>
+                        <text x="475" y="174" class="arch-label" style="fill:#10d9a0">Graph RAG Engine</text>
+                        <text x="475" y="188" class="arch-sublabel">Cross-Modal Reasoning</text>
+
+                        <!-- Nodes Column 4: Output -->
+                        <rect x="615" y="40" width="160" height="44" rx="8" fill="rgba(245,158,11,0.08)" stroke="rgba(245,158,11,0.4)" stroke-width="1"/>
+                        <text x="695" y="58" class="arch-label" style="fill:#f59e0b">FastAPI Gateway</text>
+                        <text x="695" y="72" class="arch-sublabel">Async REST API Layer</text>
+
+                        <rect x="615" y="100" width="160" height="44" rx="8" fill="rgba(245,158,11,0.08)" stroke="rgba(245,158,11,0.4)" stroke-width="1"/>
+                        <text x="695" y="118" class="arch-label">PostgreSQL Store</text>
+                        <text x="695" y="132" class="arch-sublabel">Results &amp; Embeddings</text>
+
+                        <rect x="615" y="182" width="160" height="44" rx="8" fill="rgba(239,68,68,0.08)" stroke="rgba(239,68,68,0.4)" stroke-width="1"/>
+                        <text x="695" y="200" class="arch-label">AWS EKS Cluster</text>
+                        <text x="695" y="214" class="arch-sublabel">Kubernetes Deployment</text>
+
+                        <rect x="615" y="258" width="160" height="38" rx="8" fill="rgba(91,141,238,0.05)" stroke="rgba(91,141,238,0.3)" stroke-width="1" stroke-dasharray="4,3"/>
+                        <text x="695" y="281" class="arch-sublabel" style="fill:#70a1ff;font-weight:700">GitHub Actions CI/CD</text>
+                      </svg>
+                    </div>
+                  </div>
+                  <!-- Metrics -->
+                  <div class="mpane" id="fm-metrics" data-pane="metrics">
+                    <div class="metrics-grid">
+                      <div class="metric-card"><h4>Avg. Inference Latency</h4><div class="metric-big" style="color:var(--accent3)">230ms</div><p>End-to-end from input receipt to fault classification response</p></div>
+                      <div class="metric-card"><h4>Manual Fault-Flag Reduction</h4><div class="metric-big" style="color:var(--accent)">38%</div><p>Reduction in human-reviewed fault flags within 2 months of deployment</p></div>
+                      <div class="metric-card"><h4>F1-Score (Fault Detection)</h4><div class="metric-big" style="color:var(--accent2)">0.90</div><p>Harmonic mean of precision (89%) and recall (91%) on test set</p></div>
+                      <div class="metric-card"><h4>Deployment Availability</h4><div class="metric-big" style="color:var(--orange)">99.6%</div><p>Uptime on AWS EKS with rolling updates and health checks</p></div>
+                    </div>
+                    <div class="chart-wrap">
+                      <canvas id="chart-fm"></canvas>
+                    </div>
+                  </div>
+                  <!-- Case Study -->
+                  <div class="mpane" id="fm-casestudy" data-pane="casestudy">
+                    <div class="case-timeline">
+                      <div class="case-step" style="--step-accent: var(--accent)">
+                        <div class="case-step-num">Problem</div>
+                        <h4>Industrial Fault Detection at Scale</h4>
+                        <p>Manufacturing facilities generate massive streams of multimodal data — SCADA sensor readings, camera feeds of equipment, and unstructured maintenance records. These exist in silos, requiring manual correlation by engineers who can miss critical failure patterns. Manual review is slow (hours to days), expensive, and subject to human error.</p>
+                      </div>
+                      <div class="case-step" style="--step-accent: var(--accent2)">
+                        <div class="case-step-num">Approach</div>
+                        <h4>Graph RAG with LangGraph Orchestration</h4>
+                        <p>Rather than a monolithic model, I designed a Graph RAG architecture where different modalities are processed by specialized sub-systems and unified through a knowledge graph. LangGraph manages the state machine, routing queries to the appropriate processing nodes based on input type and fault type.</p>
+                      </div>
+                      <div class="case-step" style="--step-accent: var(--glow)">
+                        <div class="case-step-num">Implementation</div>
+                        <h4>Production Pipeline on AWS EKS</h4>
+                        <p>FastAPI serves the inference API with async request handling. LangGraph orchestrates the multi-step reasoning pipeline. All components are containerized with Docker and orchestrated on AWS EKS with auto-scaling based on queue depth. GitHub Actions handles the full CI/CD pipeline with automated testing, image building, and zero-downtime rolling deployments.</p>
+                      </div>
+                      <div class="case-step" style="--step-accent: var(--orange)">
+                        <div class="case-step-num">Challenges</div>
+                        <h4>Cross-Modal Latency &amp; Consistency</h4>
+                        <p>The hardest challenge was keeping total inference latency under 300ms while coordinating three independent processing pipelines. Solved with async parallel execution in LangGraph nodes, shared PostgreSQL connection pool with pgBouncer, and careful batching of HuggingFace embedding calls to minimize GPU round-trips.</p>
+                      </div>
+                      <div class="case-step" style="--step-accent: var(--accent3)">
+                        <div class="case-step-num">Results</div>
+                        <h4>230ms Latency · 38% Fault Reduction · 90% F1</h4>
+                        <p>Achieved 230ms average inference latency (target was 300ms), 38% reduction in manual fault-flagging workload, and 90% F1-score on the fault classification benchmark. Zero-downtime deployments enabled weekly model updates without service interruption.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- MODAL: MERIDIAN -->
+          <div class="modal-overlay" id="modal-mer" role="dialog" aria-modal="true" aria-labelledby="mer-title">
+            <div class="modal-wrap">
+              <div class="modal-box" style="--modal-accent: var(--accent2)">
+                <div class="modal-top">
+                  <div class="modal-title-group">
+                    <h3 id="mer-title">Meridian</h3>
+                    <p class="modal-subtitle">Regulatory Intelligence &amp; Compliance Automation · LangGraph · LlamaIndex · GCP Cloud Run</p>
+                  </div>
+                  <button class="modal-close" onclick="closeModal('mer')" aria-label="Close modal"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <div class="modal-tabs">
+                  <button class="mtab active" data-tab="overview" onclick="switchMTab('mer','overview')">Overview</button>
+                  <button class="mtab" data-tab="arch" onclick="switchMTab('mer','arch')">Architecture</button>
+                  <button class="mtab" data-tab="metrics" onclick="switchMTab('mer','metrics')">Metrics</button>
+                  <button class="mtab" data-tab="casestudy" onclick="switchMTab('mer','casestudy')">Case Study</button>
+                </div>
+                <div class="modal-content">
+                  <div class="mpane active" id="mer-overview" data-pane="overview">
+                    <div class="overview-grid">
+                      <div class="overview-col">
+                        <h4><i class="fa-solid fa-triangle-exclamation"></i> Problem</h4>
+                        <p>Regulatory compliance (GDPR, SOC-2, ISO-27001, SEC) requires reviewing thousands of pages of regulatory text, board meeting audio recordings, and audit tables. Manual compliance audits take weeks and miss subtle cross-regulation gaps.</p>
+                      </div>
+                      <div class="overview-col">
+                        <h4><i class="fa-solid fa-lightbulb"></i> Solution</h4>
+                        <p>A 4-agent AI system using LangGraph + LlamaIndex with hybrid RAG (dense + BM25 + cross-encoder reranking) to automatically ingest multimodal regulatory content and generate structured compliance gap reports.</p>
+                      </div>
+                    </div>
+                    <div class="highlight-box">
+                      <h4><i class="fa-solid fa-star"></i> Key Achievements</h4>
+                      <ul class="highlight-list">
+                        <li>Gap-detection F1 of 0.87 across GDPR, SOC-2, ISO-27001, and SEC frameworks</li>
+                        <li>RAGAS faithfulness score of 0.91 — retrieved content tightly supports generated claims</li>
+                        <li>96.4% agent routing accuracy — correct agent selected for input type in near-all cases</li>
+                        <li>Whisper ASR transcription of board audio with speaker attribution for compliance trail</li>
+                        <li>Deployed on GCP Cloud Run with auto-scaling for variable regulatory review workloads</li>
+                      </ul>
+                    </div>
+                    <div style="margin-top:24px">
+                      <div class="badge-row">
+                        <span class="badge badge-purple">LangGraph</span><span class="badge badge-purple">LlamaIndex</span><span class="badge badge-purple">Whisper</span><span class="badge">pgvector</span><span class="badge">HuggingFace</span><span class="badge">FastAPI</span><span class="badge">Celery</span><span class="badge">GCP Cloud Run</span><span class="badge">BM25</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="mpane" id="mer-arch" data-pane="arch">
+                    <p style="color:var(--text2);font-size:.88rem;margin-bottom:20px">4-agent compliance platform showing multimodal ingestion, hybrid RAG retrieval, and agent routing architecture.</p>
+                    <div class="arch-wrap">
+                      <svg class="arch-svg" viewBox="0 0 820 320" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                          <marker id="arr-mer" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                            <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#8b5cf6"/>
+                          </marker>
+                          <marker id="arr-mer2" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                            <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#10d9a0"/>
+                          </marker>
+                        </defs>
+                        <!-- Headers -->
+                        <text x="75" y="20" class="arch-layer-label">INPUT DATA</text>
+                        <text x="245" y="20" class="arch-layer-label">INGESTION API</text>
+                        <text x="465" y="20" class="arch-layer-label">4-AGENT SYSTEM</text>
+                        <text x="695" y="20" class="arch-layer-label">AUDIT OUTPUT</text>
+
+                        <!-- Flow Paths -->
+                        <path d="M 140 62 L 175 62" stroke="rgba(139,92,246,0.2)" stroke-width="1.5" marker-end="url(#arr-mer)" fill="none"/>
+                        <path d="M 140 62 L 175 62" class="arch-flow-path" stroke="#8b5cf6" stroke-width="1.5" fill="none"/>
+
+                        <path d="M 140 122 L 175 122" stroke="rgba(139,92,246,0.2)" stroke-width="1.5" marker-end="url(#arr-mer)" fill="none"/>
+                        <path d="M 140 122 L 175 122" class="arch-flow-path" stroke="#8b5cf6" stroke-width="1.5" fill="none"/>
+
+                        <path d="M 140 182 L 175 182" stroke="rgba(139,92,246,0.2)" stroke-width="1.5" marker-end="url(#arr-mer)" fill="none"/>
+                        <path d="M 140 182 L 175 182" class="arch-flow-path" stroke="#8b5cf6" stroke-width="1.5" fill="none"/>
+
+                        <!-- Ingestion -> 4-Agent -->
+                        <path d="M 315 62 L 355 75" stroke="rgba(91,141,238,0.25)" stroke-width="1.5" marker-end="url(#arr-mer)" fill="none"/>
+                        <path d="M 315 62 L 355 75" class="arch-flow-path" stroke="#5b8dee" stroke-width="1.5" fill="none"/>
+
+                        <path d="M 315 122 L 355 77" stroke="rgba(91,141,238,0.25)" stroke-width="1.5" marker-end="url(#arr-mer)" fill="none"/>
+                        <path d="M 315 122 L 355 77" class="arch-flow-path" stroke="#5b8dee" stroke-width="1.5" fill="none"/>
+
+                        <path d="M 315 182 L 355 79" stroke="rgba(91,141,238,0.25)" stroke-width="1.5" marker-end="url(#arr-mer)" fill="none"/>
+                        <path d="M 315 182 L 355 79" class="arch-flow-path" stroke="#5b8dee" stroke-width="1.5" fill="none"/>
+
+                        <!-- 4-Agent -> Output -->
+                        <path d="M 575 75 L 615 62" stroke="rgba(16,217,160,0.25)" stroke-width="1.5" marker-end="url(#arr-mer2)" fill="none"/>
+                        <path d="M 575 75 L 615 62" class="arch-flow-path" stroke="#10d9a0" stroke-width="1.5" fill="none"/>
+
+                        <path d="M 575 249 L 615 142" stroke="rgba(16,217,160,0.25)" stroke-width="1.5" marker-end="url(#arr-mer2)" fill="none"/>
+                        <path d="M 575 249 L 615 142" class="arch-flow-path" stroke="#10d9a0" stroke-width="1.5" fill="none"/>
+
+                        <path d="M 695 164 L 695 198" stroke="rgba(245,158,11,0.25)" stroke-width="1.5" marker-end="url(#arr-mer)" fill="none"/>
+                        <path d="M 695 164 L 695 198" class="arch-flow-path" stroke="#f59e0b" stroke-width="1.5" fill="none"/>
+
+                        <!-- Nodes Column 1: Input -->
+                        <rect x="10" y="40" width="130" height="44" rx="8" fill="rgba(139,92,246,0.08)" stroke="rgba(139,92,246,0.4)" stroke-width="1"/>
+                        <text x="75" y="58" class="arch-label">Regulatory PDFs</text>
+                        <text x="75" y="72" class="arch-sublabel">GDPR / SOC2 / ISO / SEC</text>
+
+                        <rect x="10" y="100" width="130" height="44" rx="8" fill="rgba(139,92,246,0.08)" stroke="rgba(139,92,246,0.4)" stroke-width="1"/>
+                        <text x="75" y="118" class="arch-label">Board Audio</text>
+                        <text x="75" y="132" class="arch-sublabel">Meeting Recordings</text>
+
+                        <rect x="10" y="160" width="130" height="44" rx="8" fill="rgba(139,92,246,0.08)" stroke="rgba(139,92,246,0.4)" stroke-width="1"/>
+                        <text x="75" y="178" class="arch-label">Audit Tables</text>
+                        <text x="75" y="192" class="arch-sublabel">Structured Records</text>
+
+                        <!-- Nodes Column 2: Ingestion -->
+                        <rect x="175" y="40" width="140" height="44" rx="8" fill="rgba(91,141,238,0.07)" stroke="rgba(91,141,238,0.35)" stroke-width="1"/>
+                        <text x="245" y="58" class="arch-label">LlamaIndex</text>
+                        <text x="245" y="72" class="arch-sublabel">PDF Chunking &amp; Index</text>
+
+                        <rect x="175" y="100" width="140" height="44" rx="8" fill="rgba(91,141,238,0.07)" stroke="rgba(91,141,238,0.35)" stroke-width="1"/>
+                        <text x="245" y="118" class="arch-label">Whisper ASR</text>
+                        <text x="245" y="132" class="arch-sublabel">Transcribe &amp; Diarize</text>
+
+                        <rect x="175" y="160" width="140" height="44" rx="8" fill="rgba(91,141,238,0.07)" stroke="rgba(91,141,238,0.35)" stroke-width="1"/>
+                        <text x="245" y="178" class="arch-label">Table Parser</text>
+                        <text x="245" y="192" class="arch-sublabel">Structured Extraction</text>
+
+                        <!-- Nodes Column 3: 4-Agent -->
+                        <rect x="355" y="50" width="220" height="48" rx="8" fill="rgba(16,217,160,0.08)" stroke="rgba(16,217,160,0.45)" stroke-width="1.5"/>
+                        <text x="465" y="70" class="arch-label" style="fill:#64ffda">LangGraph Router Agent</text>
+                        <text x="465" y="86" class="arch-sublabel">96.4% Routing Accuracy</text>
+
+                        <rect x="355" y="112" width="105" height="40" rx="7" fill="rgba(16,217,160,0.05)" stroke="rgba(16,217,160,0.3)" stroke-width="1"/>
+                        <text x="407" y="129" class="arch-label">GDPR Agent</text>
+                        <text x="407" y="142" class="arch-sublabel">Art 5, 25, 32 Checks</text>
+
+                        <rect x="470" y="112" width="105" height="40" rx="7" fill="rgba(16,217,160,0.05)" stroke="rgba(16,217,160,0.3)" stroke-width="1"/>
+                        <text x="522" y="129" class="arch-label">SOC-2 Agent</text>
+                        <text x="522" y="142" class="arch-sublabel">Trust Criteria</text>
+
+                        <rect x="355" y="166" width="105" height="40" rx="7" fill="rgba(16,217,160,0.05)" stroke="rgba(16,217,160,0.3)" stroke-width="1"/>
+                        <text x="407" y="183" class="arch-label">ISO-27001</text>
+                        <text x="407" y="196" class="arch-sublabel">Controls Audit</text>
+
+                        <rect x="470" y="166" width="105" height="40" rx="7" fill="rgba(16,217,160,0.05)" stroke="rgba(16,217,160,0.3)" stroke-width="1"/>
+                        <text x="522" y="183" class="arch-label">SEC Agent</text>
+                        <text x="522" y="196" class="arch-sublabel">Disclosure Checks</text>
+
+                        <rect x="355" y="228" width="220" height="42" rx="8" fill="rgba(245,158,11,0.08)" stroke="rgba(245,158,11,0.35)" stroke-width="1"/>
+                        <text x="465" y="245" class="arch-label" style="fill:#f59e0b">Hybrid RAG Engine</text>
+                        <text x="465" y="259" class="arch-sublabel">Dense + BM25 + Reranker</text>
+
+                        <!-- Nodes Column 4: Output -->
+                        <rect x="615" y="40" width="160" height="44" rx="8" fill="rgba(245,158,11,0.08)" stroke="rgba(245,158,11,0.4)" stroke-width="1"/>
+                        <text x="695" y="58" class="arch-label">pgvector Store</text>
+                        <text x="695" y="72" class="arch-sublabel">Vector Embeddings</text>
+
+                        <rect x="615" y="100" width="160" height="44" rx="8" fill="rgba(245,158,11,0.08)" stroke="rgba(245,158,11,0.4)" stroke-width="1"/>
+                        <text x="695" y="118" class="arch-label" style="fill:#10d9a0">Gap Report Generator</text>
+                        <text x="695" y="132" class="arch-sublabel">F1 Score = 0.87</text>
+
+                        <rect x="615" y="198" width="160" height="44" rx="8" fill="rgba(239,68,68,0.08)" stroke="rgba(239,68,68,0.4)" stroke-width="1"/>
+                        <text x="695" y="216" class="arch-label">GCP Cloud Run</text>
+                        <text x="695" y="230" class="arch-sublabel">Serverless Deployment</text>
+                      </svg>
+                    </div>
+                  </div>
+                  <div class="mpane" id="mer-metrics" data-pane="metrics">
+                    <div class="metrics-grid">
+                      <div class="metric-card"><h4>Gap-Detection F1-Score</h4><div class="metric-big" style="color:var(--accent2)">0.87</div><p>Precision: 0.88 | Recall: 0.86 across all 4 compliance frameworks</p></div>
+                      <div class="metric-card"><h4>RAGAS Faithfulness</h4><div class="metric-big" style="color:var(--accent3)">0.91</div><p>Retrieved passages tightly ground 91% of generated compliance claims</p></div>
+                      <div class="metric-card"><h4>Agent Routing Accuracy</h4><div class="metric-big" style="color:var(--accent)">96.4%</div><p>Correct agent selected for input modality type on test benchmark</p></div>
+                      <div class="metric-card"><h4>Frameworks Covered</h4><div class="metric-big" style="color:var(--orange)">4</div><p>GDPR · SOC-2 · ISO-27001 · SEC disclosure requirements</p></div>
+                    </div>
+                    <div class="chart-wrap">
+                      <canvas id="chart-mer"></canvas>
+                    </div>
+                  </div>
+                  <div class="mpane" id="mer-casestudy" data-pane="casestudy">
+                    <div class="case-timeline">
+                      <div class="case-step" style="--step-accent: var(--accent2)">
+                        <div class="case-step-num">Problem</div>
+                        <h4>Compliance Audits are Slow, Expensive, and Miss Gaps</h4>
+                        <p>Enterprise compliance teams spend weeks reviewing regulatory documents, listening to board meeting recordings, and cross-referencing audit tables. Cross-regulation gaps (e.g., a GDPR Article 32 requirement missed in an SOC-2 audit table) are easily overlooked. The cost and latency of manual review creates business risk.</p>
+                      </div>
+                      <div class="case-step" style="--step-accent: var(--accent3)">
+                        <div class="case-step-num">Approach</div>
+                        <h4>4-Agent LangGraph System with Hybrid RAG</h4>
+                        <p>Designed a specialized 4-agent architecture: a Router agent that classifies input and selects the appropriate compliance agent (GDPR, SOC-2, ISO-27001, SEC). Each compliance agent uses LlamaIndex + hybrid RAG (dense embeddings + BM25 + cross-encoder reranking) to retrieve relevant regulation sections and compare against the audit content.</p>
+                      </div>
+                      <div class="case-step" style="--step-accent: var(--glow)">
+                        <div class="case-step-num">Implementation</div>
+                        <h4>Celery Task Queue + GCP Cloud Run Deployment</h4>
+                        <p>Compliance analysis is computationally expensive. Celery + Redis handles asynchronous task processing so users receive immediate acknowledgment while analysis runs in the background. FastAPI serves the API layer. GCP Cloud Run provides auto-scaling serverless deployment that handles variable load spikes during quarterly compliance cycles.</p>
+                      </div>
+                      <div class="case-step" style="--step-accent: var(--orange)">
+                        <div class="case-step-num">Challenges</div>
+                        <h4>Hallucination Control in Compliance Context</h4>
+                        <p>In compliance, a false negative (missing a real gap) is a legal risk. The biggest challenge was ensuring the system doesn't hallucinate compliance gaps or miss real ones. Solved with strict RAGAS faithfulness evaluation during development, conservative retrieval thresholds, and citation tracking so every generated gap claim links to specific regulation text.</p>
+                      </div>
+                      <div class="case-step" style="--step-accent: var(--accent)">
+                        <div class="case-step-num">Results</div>
+                        <h4>F1 0.87 · RAGAS 0.91 · 96.4% Routing Accuracy</h4>
+                        <p>Achieved strong evaluation metrics: 0.87 F1 for gap detection, 0.91 RAGAS faithfulness (retrieved content truly supports claims), and 96.4% agent routing accuracy. The system reduced manual compliance review time from days to minutes for standard framework audits.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- MODAL: AI FITNESS COACH -->
+          <div class="modal-overlay" id="modal-fit" role="dialog" aria-modal="true" aria-labelledby="fit-title">
+            <div class="modal-wrap">
+              <div class="modal-box" style="--modal-accent: var(--accent3)">
+                <div class="modal-top">
+                  <div class="modal-title-group">
+                    <h3 id="fit-title">AI Fitness Coach</h3>
+                    <p class="modal-subtitle">Cross-Platform Fitness Application · Flutter · ML Kit · FastAPI</p>
+                  </div>
+                  <button class="modal-close" onclick="closeModal('fit')" aria-label="Close modal"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <div class="modal-tabs">
+                  <button class="mtab active" data-tab="overview" onclick="switchMTab('fit','overview')">Overview</button>
+                  <button class="mtab" data-tab="arch" onclick="switchMTab('fit','arch')">Architecture</button>
+                  <button class="mtab" data-tab="metrics" onclick="switchMTab('fit','metrics')">Metrics</button>
+                  <button class="mtab" data-tab="casestudy" onclick="switchMTab('fit','casestudy')">Case Study</button>
+                </div>
+                <div class="modal-content">
+                  <div class="mpane active" id="fit-overview" data-pane="overview">
+                    <div class="overview-grid">
+                      <div class="overview-col">
+                        <h4><i class="fa-solid fa-triangle-exclamation"></i> Problem</h4>
+                        <p>Personal trainers are expensive and unavailable to most people. Existing fitness apps use simple timers without understanding of form or rep quality. Users perform exercises incorrectly without feedback, risking injury and getting poor results.</p>
+                      </div>
+                      <div class="overview-col">
+                        <h4><i class="fa-solid fa-lightbulb"></i> Solution</h4>
+                        <p>Cross-platform AI fitness app with on-device ML Kit pose estimation for real-time rep counting and form feedback across 8 exercise types, secured with AES-256 encryption and synchronized via Firebase.</p>
+                      </div>
+                    </div>
+                    <div class="highlight-box">
+                      <h4><i class="fa-solid fa-star"></i> Key Achievements</h4>
+                      <ul class="highlight-list">
+                        <li>~97% rep-counting accuracy across 8 exercise types (push-ups, squats, lunges, curls, etc.)</li>
+                        <li>91% test coverage using TDD with comprehensive unit and integration tests</li>
+                        <li>Sub-140ms FastAPI response time for all backend endpoints</li>
+                        <li>On-device inference using ML Kit — no data leaves the device for pose estimation</li>
+                        <li>AES-256 encryption for all user health data at rest and in transit</li>
+                      </ul>
+                    </div>
+                    <div style="margin-top:24px">
+                      <div class="badge-row">
+                        <span class="badge badge-green">Flutter</span><span class="badge badge-green">Dart</span><span class="badge badge-green">ML Kit</span><span class="badge">Python</span><span class="badge">FastAPI</span><span class="badge">Firebase</span><span class="badge">AES-256</span><span class="badge">Docker</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="mpane" id="fit-arch" data-pane="arch">
+                    <p style="color:var(--text2);font-size:.88rem;margin-bottom:20px">System architecture showing on-device AI inference pipeline and secure backend synchronization.</p>
+                    <div class="arch-wrap">
+                      <svg class="arch-svg" viewBox="0 0 820 280" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                          <marker id="arr-fit" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                            <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#00e5ff"/>
+                          </marker>
+                        </defs>
+                        <!-- Headers -->
+                        <text x="135" y="20" class="arch-layer-label">MOBILE APP (FLUTTER)</text>
+                        <text x="395" y="20" class="arch-layer-label">ON-DEVICE AI ENGINE</text>
+                        <text x="655" y="20" class="arch-layer-label">BACKEND &amp; SECURITY</text>
+
+                        <!-- Flow Paths -->
+                        <path d="M 135 98 L 135 83" stroke="rgba(16,217,160,0.25)" stroke-width="1.5" marker-end="url(#arr-fit)" fill="none"/>
+                        <path d="M 135 98 L 135 83" class="arch-flow-path" stroke="#10d9a0" stroke-width="1.5" fill="none"/>
+
+                        <path d="M 270 59 L 295 59" stroke="rgba(16,217,160,0.25)" stroke-width="1.5" marker-end="url(#arr-fit)" fill="none"/>
+                        <path d="M 270 59 L 295 59" class="arch-flow-path" stroke="#10d9a0" stroke-width="1.5" fill="none"/>
+
+                        <path d="M 345 98 L 345 83" stroke="rgba(91,141,238,0.25)" stroke-width="1.5" marker-end="url(#arr-fit)" fill="none"/>
+                        <path d="M 345 98 L 345 83" class="arch-flow-path" stroke="#5b8dee" stroke-width="1.5" fill="none"/>
+
+                        <path d="M 445 98 L 445 83" stroke="rgba(91,141,238,0.25)" stroke-width="1.5" marker-end="url(#arr-fit)" fill="none"/>
+                        <path d="M 445 98 L 445 83" class="arch-flow-path" stroke="#5b8dee" stroke-width="1.5" fill="none"/>
+
+                        <path d="M 495 59 L 575 59" stroke="rgba(91,141,238,0.25)" stroke-width="1.5" marker-end="url(#arr-fit)" fill="none"/>
+                        <path d="M 495 59 L 575 59" class="arch-flow-path" stroke="#5b8dee" stroke-width="1.5" fill="none"/>
+
+                        <path d="M 735 59 L 748 59" stroke="rgba(245,158,11,0.25)" stroke-width="1.5" marker-end="url(#arr-fit)" fill="none"/>
+                        <path d="M 735 59 L 748 59" class="arch-flow-path" stroke="#f59e0b" stroke-width="1.5" fill="none"/>
+
+                        <!-- Mobile Section -->
+                        <rect x="10" y="35" width="260" height="48" rx="8" fill="rgba(16,217,160,0.08)" stroke="rgba(16,217,160,0.4)" stroke-width="1.5"/>
+                        <text x="140" y="55" class="arch-label" style="fill:#64ffda">Flutter Mobile App</text>
+                        <text x="140" y="70" class="arch-sublabel">iOS &amp; Android · Dart · Custom Painting</text>
+
+                        <rect x="10" y="98" width="125" height="42" rx="7" fill="rgba(16,217,160,0.05)" stroke="rgba(16,217,160,0.3)" stroke-width="1"/>
+                        <text x="72.5" y="116" class="arch-label">Camera Feed</text>
+                        <text x="72.5" y="130" class="arch-sublabel">60 FPS Local Stream</text>
+
+                        <rect x="145" y="98" width="125" height="42" rx="7" fill="rgba(16,217,160,0.05)" stroke="rgba(16,217,160,0.3)" stroke-width="1"/>
+                        <text x="207.5" y="116" class="arch-label">UI / UX Screens</text>
+                        <text x="207.5" y="130" class="arch-sublabel">Workout Dashboard</text>
+
+                        <!-- On-Device AI Section -->
+                        <rect x="295" y="35" width="200" height="48" rx="8" fill="rgba(91,141,238,0.08)" stroke="rgba(91,141,238,0.4)" stroke-width="1.5"/>
+                        <text x="395" y="55" class="arch-label" style="fill:#70a1ff">ML Kit Pose Estimator</text>
+                        <text x="395" y="70" class="arch-sublabel">33 Keypoint Detection · 97% Acc</text>
+
+                        <rect x="295" y="98" width="95" height="42" rx="7" fill="rgba(91,141,238,0.05)" stroke="rgba(91,141,238,0.3)" stroke-width="1"/>
+                        <text x="342.5" y="116" class="arch-label">Rep Counter</text>
+                        <text x="342.5" y="130" class="arch-sublabel">Angle Analytics</text>
+
+                        <rect x="400" y="98" width="95" height="42" rx="7" fill="rgba(91,141,238,0.05)" stroke="rgba(91,141,238,0.3)" stroke-width="1"/>
+                        <text x="447.5" y="116" class="arch-label">Form Checker</text>
+                        <text x="447.5" y="130" class="arch-sublabel">Real-Time Alerts</text>
+
+                        <!-- Backend & Security Section -->
+                        <rect x="575" y="35" width="160" height="48" rx="8" fill="rgba(245,158,11,0.08)" stroke="rgba(245,158,11,0.4)" stroke-width="1.5"/>
+                        <text x="655" y="55" class="arch-label" style="fill:#f59e0b">FastAPI Backend</text>
+                        <text x="655" y="70" class="arch-sublabel">Async · &lt;140ms Response</text>
+
+                        <rect x="748" y="35" width="140" height="48" rx="8" fill="rgba(245,158,11,0.08)" stroke="rgba(245,158,11,0.4)" stroke-width="1.5"/>
+                        <text x="818" y="55" class="arch-label">Firebase</text>
+                        <text x="818" y="70" class="arch-sublabel">Realtime Sync &amp; Auth</text>
+
+                        <rect x="575" y="98" width="160" height="42" rx="7" fill="rgba(239,68,68,0.08)" stroke="rgba(239,68,68,0.35)" stroke-width="1"/>
+                        <text x="655" y="116" class="arch-label">AES-256 Encryption</text>
+                        <text x="655" y="130" class="arch-sublabel">Payload Protection</text>
+
+                        <rect x="748" y="98" width="140" height="42" rx="7" fill="rgba(245,158,11,0.06)" stroke="rgba(245,158,11,0.25)" stroke-width="1"/>
+                        <text x="818" y="116" class="arch-label">Docker</text>
+                        <text x="818" y="130" class="arch-sublabel">Container Deploy</text>
+                      </svg>
+                    </div>
+                  </div>
+                  <div class="mpane" id="fit-metrics" data-pane="metrics">
+                    <div class="metrics-grid">
+                      <div class="metric-card"><h4>Rep-Counting Accuracy</h4><div class="metric-big" style="color:var(--accent3)">97%</div><p>Across 8 exercise types using ML Kit 33-keypoint pose graph</p></div>
+                      <div class="metric-card"><h4>Test Coverage (TDD)</h4><div class="metric-big" style="color:var(--accent)">91%</div><p>Unit + integration tests written test-first across all modules</p></div>
+                      <div class="metric-card"><h4>API Response Time</h4><div class="metric-big" style="color:var(--accent2)">&lt;140ms</div><p>FastAPI async endpoints, measured at p95 on production traffic</p></div>
+                      <div class="metric-card"><h4>Exercise Types</h4><div class="metric-big" style="color:var(--orange)">8</div><p>Push-ups, squats, lunges, bicep curls, shoulder press, and more</p></div>
+                    </div>
+                    <div class="chart-wrap">
+                      <canvas id="chart-fit"></canvas>
+                    </div>
+                  </div>
+                  <div class="mpane" id="fit-casestudy" data-pane="casestudy">
+                    <div class="case-timeline">
+                      <div class="case-step" style="--step-accent: var(--accent3)">
+                        <div class="case-step-num">Problem</div>
+                        <h4>Fitness Apps Lack Real Intelligence</h4>
+                        <p>Most fitness apps are glorified timers. They count sets and reps by user input, not by actually tracking movement. Without real-time form feedback, users develop incorrect movement patterns, leading to injury and plateau. Personal trainers cost $50–150/hr and aren't accessible to most users.</p>
+                      </div>
+                      <div class="case-step" style="--step-accent: var(--accent)">
+                        <div class="case-step-num">Approach</div>
+                        <h4>On-Device Pose Estimation for Privacy-First AI</h4>
+                        <p>Used Google ML Kit's pose estimation (33 body keypoints at 30fps) for all movement analysis. By keeping inference on-device, no video data ever leaves the phone — crucial for health apps. Joint angles computed from keypoint coordinates determine rep count state machine transitions and form quality scores.</p>
+                      </div>
+                      <div class="case-step" style="--step-accent: var(--accent2)">
+                        <div class="case-step-num">Implementation</div>
+                        <h4>Flutter + FastAPI + Firebase Stack</h4>
+                        <p>Flutter handles the cross-platform mobile layer with custom paint for pose overlay visualization. FastAPI backend manages user profiles, workout history, and progress analytics. Firebase provides real-time sync for workout sessions and handles authentication. All health data is AES-256 encrypted before leaving the device.</p>
+                      </div>
+                      <div class="case-step" style="--step-accent: var(--orange)">
+                        <div class="case-step-num">Challenges</div>
+                        <h4>Accuracy Across Diverse Body Types &amp; Camera Angles</h4>
+                        <p>The core challenge was achieving consistent accuracy across different body types, clothing, and camera placement angles. Addressed by training the angle thresholds on a diverse dataset, adding adaptive calibration during the first rep of each set, and implementing confidence-weighted smoothing to filter noise from pose keypoints.</p>
+                      </div>
+                      <div class="case-step" style="--step-accent: var(--glow)">
+                        <div class="case-step-num">Results</div>
+                        <h4>97% Accuracy · Sub-140ms API · 91% Test Coverage</h4>
+                        <p>Achieved ~97% rep-counting accuracy across 8 exercise types on mobile devices, sub-140ms p95 API response times, and 91% unit/integration test coverage with TDD best practices. Zero video data ever leaves the user's device, providing a privacy-first AI training experience.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
 
         <!-- Skills -->
         <section class="reveal" id="skills">
             <div class="container">
                 <div class="section-heading">
                     <p class="eyebrow">04 / Toolkit</p>
-                    <h2 class="section-title">Technical Skills</h2>
+                    <h2 class="section-title">Technical <span class="gradient-text">Skills</span></h2>
+                    <p class="section-lead">Core engineering competencies spanning AI platforms, full-stack cloud services, mobile applications, and database architectures.</p>
                 </div>
                 <div class="skills-grid reveal-stagger">
-                    <article class="glass-panel skill-category" style="--stagger: 0"><h3><i class="fa-solid fa-code" aria-hidden="true"></i>Languages</h3><div class="skill-pills"><span class="skill-pill">C/C++</span><span class="skill-pill">Python</span><span class="skill-pill">JavaScript (ES6+)</span><span class="skill-pill">TypeScript</span><span class="skill-pill">Java</span><span class="skill-pill">Dart</span><span class="skill-pill">SQL</span></div></article>
-                    <article class="glass-panel skill-category" style="--stagger: 1"><h3><i class="fa-solid fa-brain" aria-hidden="true"></i>AI &amp; Machine Learning</h3><div class="skill-pills"><span class="skill-pill">Gemini API</span><span class="skill-pill">LangChain</span><span class="skill-pill">LangGraph</span><span class="skill-pill">HuggingFace</span><span class="skill-pill">RAG</span><span class="skill-pill">Prompt Engineering</span></div></article>
-                    <article class="glass-panel skill-category" style="--stagger: 2"><h3><i class="fa-solid fa-server" aria-hidden="true"></i>Backend &amp; Cloud</h3><div class="skill-pills"><span class="skill-pill">Node.js</span><span class="skill-pill">FastAPI</span><span class="skill-pill">Flask</span><span class="skill-pill">RESTful APIs</span><span class="skill-pill">Spring Boot</span><span class="skill-pill">Firebase</span></div></article>
-                    <article class="glass-panel skill-category" style="--stagger: 3"><h3><i class="fa-solid fa-mobile-screen-button" aria-hidden="true"></i>Frontend &amp; Mobile</h3><div class="skill-pills"><span class="skill-pill">React.js</span><span class="skill-pill">Next.js</span><span class="skill-pill">Flutter</span><span class="skill-pill">Tailwind CSS</span><span class="skill-pill">Redux</span></div></article>
-                    <article class="glass-panel skill-category" style="--stagger: 4"><h3><i class="fa-solid fa-database" aria-hidden="true"></i>Databases</h3><div class="skill-pills"><span class="skill-pill">PostgreSQL</span><span class="skill-pill">MySQL</span><span class="skill-pill">MongoDB</span><span class="skill-pill">Firestore</span><span class="skill-pill">Query Optimization</span></div></article>
-                    <article class="glass-panel skill-category" style="--stagger: 5"><h3><i class="fa-solid fa-gears" aria-hidden="true"></i>Dev Practices</h3><div class="skill-pills"><span class="skill-pill">System Design</span><span class="skill-pill">Docker</span><span class="skill-pill">CI/CD</span><span class="skill-pill">Git/GitHub</span><span class="skill-pill">Microservices</span><span class="skill-pill">Agile/Scrum</span></div></article>
+
+                    <!-- Languages -->
+                    <article class="glass-panel skill-category tilt-card" style="--stagger: 0; --cat-color: #00e5ff; --cat-glow: rgba(0,229,255,0.22)">
+                        <div class="skill-cat-header">
+                            <h3>
+                                <div class="skill-icon-wrap" style="color:#00e5ff; background:rgba(0,229,255,0.1); border-color:rgba(0,229,255,0.3)">
+                                    <i class="fa-solid fa-code" aria-hidden="true"></i>
+                                </div>
+                                Languages
+                            </h3>
+                            <span class="skill-count">7 Skills</span>
+                        </div>
+                        <div class="skill-pills">
+                            <span class="skill-pill" style="--pill-accent: #00e5ff"><span class="pill-dot"></span>C / C++</span>
+                            <span class="skill-pill" style="--pill-accent: #3776ab"><span class="pill-dot"></span>Python</span>
+                            <span class="skill-pill" style="--pill-accent: #f7df1e"><span class="pill-dot"></span>JavaScript (ES6+)</span>
+                            <span class="skill-pill" style="--pill-accent: #3178c6"><span class="pill-dot"></span>TypeScript</span>
+                            <span class="skill-pill" style="--pill-accent: #b07219"><span class="pill-dot"></span>Java</span>
+                            <span class="skill-pill" style="--pill-accent: #0175c2"><span class="pill-dot"></span>Dart</span>
+                            <span class="skill-pill" style="--pill-accent: #e38c00"><span class="pill-dot"></span>SQL</span>
+                        </div>
+                    </article>
+
+                    <!-- AI & Machine Learning -->
+                    <article class="glass-panel skill-category tilt-card" style="--stagger: 1; --cat-color: #8b5cf6; --cat-glow: rgba(139,92,246,0.22)">
+                        <div class="skill-cat-header">
+                            <h3>
+                                <div class="skill-icon-wrap" style="color:#b87cf8; background:rgba(139,92,246,0.1); border-color:rgba(139,92,246,0.3)">
+                                    <i class="fa-solid fa-brain" aria-hidden="true"></i>
+                                </div>
+                                AI &amp; Machine Learning
+                            </h3>
+                            <span class="skill-count">6 Skills</span>
+                        </div>
+                        <div class="skill-pills">
+                            <span class="skill-pill" style="--pill-accent: #8b5cf6"><span class="pill-dot"></span>Gemini API</span>
+                            <span class="skill-pill" style="--pill-accent: #10d9a0"><span class="pill-dot"></span>LangChain</span>
+                            <span class="skill-pill" style="--pill-accent: #64ffda"><span class="pill-dot"></span>LangGraph</span>
+                            <span class="skill-pill" style="--pill-accent: #ff9d00"><span class="pill-dot"></span>HuggingFace</span>
+                            <span class="skill-pill" style="--pill-accent: #00e5ff"><span class="pill-dot"></span>Graph RAG</span>
+                            <span class="skill-pill" style="--pill-accent: #ec4899"><span class="pill-dot"></span>Prompt Engineering</span>
+                        </div>
+                    </article>
+
+                    <!-- Backend & Cloud -->
+                    <article class="glass-panel skill-category tilt-card" style="--stagger: 2; --cat-color: #f59e0b; --cat-glow: rgba(245,158,11,0.22)">
+                        <div class="skill-cat-header">
+                            <h3>
+                                <div class="skill-icon-wrap" style="color:#f59e0b; background:rgba(245,158,11,0.1); border-color:rgba(245,158,11,0.3)">
+                                    <i class="fa-solid fa-server" aria-hidden="true"></i>
+                                </div>
+                                Backend &amp; Cloud
+                            </h3>
+                            <span class="skill-count">6 Skills</span>
+                        </div>
+                        <div class="skill-pills">
+                            <span class="skill-pill" style="--pill-accent: #68a063"><span class="pill-dot"></span>Node.js</span>
+                            <span class="skill-pill" style="--pill-accent: #059669"><span class="pill-dot"></span>FastAPI</span>
+                            <span class="skill-pill" style="--pill-accent: #94a3b8"><span class="pill-dot"></span>Flask</span>
+                            <span class="skill-pill" style="--pill-accent: #00e5ff"><span class="pill-dot"></span>RESTful APIs</span>
+                            <span class="skill-pill" style="--pill-accent: #6db33f"><span class="pill-dot"></span>Spring Boot</span>
+                            <span class="skill-pill" style="--pill-accent: #ffca28"><span class="pill-dot"></span>Firebase</span>
+                        </div>
+                    </article>
+
+                    <!-- Frontend & Mobile -->
+                    <article class="glass-panel skill-category tilt-card" style="--stagger: 3; --cat-color: #10d9a0; --cat-glow: rgba(16,217,160,0.22)">
+                        <div class="skill-cat-header">
+                            <h3>
+                                <div class="skill-icon-wrap" style="color:#10d9a0; background:rgba(16,217,160,0.1); border-color:rgba(16,217,160,0.3)">
+                                    <i class="fa-solid fa-mobile-screen-button" aria-hidden="true"></i>
+                                </div>
+                                Frontend &amp; Mobile
+                            </h3>
+                            <span class="skill-count">5 Skills</span>
+                        </div>
+                        <div class="skill-pills">
+                            <span class="skill-pill" style="--pill-accent: #61dafb"><span class="pill-dot"></span>React.js</span>
+                            <span class="skill-pill" style="--pill-accent: #ffffff"><span class="pill-dot"></span>Next.js</span>
+                            <span class="skill-pill" style="--pill-accent: #02569b"><span class="pill-dot"></span>Flutter</span>
+                            <span class="skill-pill" style="--pill-accent: #38bdf8"><span class="pill-dot"></span>Tailwind CSS</span>
+                            <span class="skill-pill" style="--pill-accent: #764abc"><span class="pill-dot"></span>Redux</span>
+                        </div>
+                    </article>
+
+                    <!-- Databases -->
+                    <article class="glass-panel skill-category tilt-card" style="--stagger: 4; --cat-color: #ec4899; --cat-glow: rgba(236,72,153,0.22)">
+                        <div class="skill-cat-header">
+                            <h3>
+                                <div class="skill-icon-wrap" style="color:#ec4899; background:rgba(236,72,153,0.1); border-color:rgba(236,72,153,0.3)">
+                                    <i class="fa-solid fa-database" aria-hidden="true"></i>
+                                </div>
+                                Databases
+                            </h3>
+                            <span class="skill-count">5 Skills</span>
+                        </div>
+                        <div class="skill-pills">
+                            <span class="skill-pill" style="--pill-accent: #336791"><span class="pill-dot"></span>PostgreSQL</span>
+                            <span class="skill-pill" style="--pill-accent: #00758f"><span class="pill-dot"></span>MySQL</span>
+                            <span class="skill-pill" style="--pill-accent: #47a248"><span class="pill-dot"></span>MongoDB</span>
+                            <span class="skill-pill" style="--pill-accent: #ffca28"><span class="pill-dot"></span>Firestore</span>
+                            <span class="skill-pill" style="--pill-accent: #8b5cf6"><span class="pill-dot"></span>Query Optimization</span>
+                        </div>
+                    </article>
+
+                    <!-- Dev Practices -->
+                    <article class="glass-panel skill-category tilt-card" style="--stagger: 5; --cat-color: #6366f1; --cat-glow: rgba(99,102,241,0.22)">
+                        <div class="skill-cat-header">
+                            <h3>
+                                <div class="skill-icon-wrap" style="color:#70a1ff; background:rgba(99,102,241,0.1); border-color:rgba(99,102,241,0.3)">
+                                    <i class="fa-solid fa-gears" aria-hidden="true"></i>
+                                </div>
+                                Dev Practices
+                            </h3>
+                            <span class="skill-count">6 Skills</span>
+                        </div>
+                        <div class="skill-pills">
+                            <span class="skill-pill" style="--pill-accent: #00e5ff"><span class="pill-dot"></span>System Design</span>
+                            <span class="skill-pill" style="--pill-accent: #2496ed"><span class="pill-dot"></span>Docker</span>
+                            <span class="skill-pill" style="--pill-accent: #2088ef"><span class="pill-dot"></span>CI/CD</span>
+                            <span class="skill-pill" style="--pill-accent: #f05032"><span class="pill-dot"></span>Git / GitHub</span>
+                            <span class="skill-pill" style="--pill-accent: #8b5cf6"><span class="pill-dot"></span>Microservices</span>
+                            <span class="skill-pill" style="--pill-accent: #10d9a0"><span class="pill-dot"></span>Agile / Scrum</span>
+                        </div>
+                    </article>
+
                 </div>
             </div>
         </section>
@@ -635,17 +2277,18 @@
                 <div class="achievements-grid">
                     <article class="glass-panel achievement-card">
                         <div class="achievement-icon"><i class="fa-solid fa-code" aria-hidden="true"></i></div>
-                        <div class="achievement-number counter" data-target="250" data-suffix="+">250+</div>
-                        <div class="achievement-text">LeetCode Problems Solved<br>(Rating: 1560)</div>
+                        <div id="leetcode-solved" class="achievement-number counter" data-target="130" data-suffix="" aria-live="polite">130</div>
+                        <div class="achievement-text">LeetCode Problems Solved<br>(Rating: <span id="leetcode-rating" aria-live="polite">1500</span>)</div>
                         <a href="https://leetcode.com/u/Mandeep_15686/" target="_blank" rel="noopener noreferrer" class="btn achievement-btn magnetic">View Profile <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i></a>
                     </article>
                     <article class="glass-panel achievement-card">
                         <div class="achievement-icon"><i class="fa-solid fa-trophy" aria-hidden="true"></i></div>
-                        <div class="achievement-number counter" data-target="1220" data-suffix="">1220</div>
-                        <div class="achievement-text">Codeforces Peak Rating<br>(Competitive Programming)</div>
+                        <div id="codeforces-rating" class="achievement-number counter" data-target="1220" data-suffix="" aria-live="polite">1220</div>
+                        <div class="achievement-text">Codeforces Current Rating<br>(Competitive Programming)</div>
                         <a href="https://codeforces.com/profile/mandeep15686" target="_blank" rel="noopener noreferrer" class="btn achievement-btn magnetic">View Profile <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i></a>
                     </article>
                 </div>
+                <p id="live-stats-status" class="sr-only" aria-live="polite"></p>
             </div>
         </section>
 
@@ -756,6 +2399,7 @@
             const duration = 1150;
             const start = performance.now();
             function tick(now) {
+                if (element.dataset.liveUpdated === 'true') return;
                 const elapsed = Math.min((now - start) / duration, 1);
                 const eased = 1 - Math.pow(1 - elapsed, 3);
                 element.textContent = Math.floor(target * eased) + suffix;
@@ -773,34 +2417,299 @@
         }, { threshold: 0.65 });
         document.querySelectorAll('.counter').forEach((counter) => counterObserver.observe(counter));
 
-        // === Pointer enhancements are limited to capable devices ===
-        if (window.matchMedia('(pointer: fine)').matches && !reducedMotion) {
-            document.body.classList.add('pointer-ready');
-            window.addEventListener('pointermove', (event) => {
-                document.documentElement.style.setProperty('--cursor-x', event.clientX + 'px');
-                document.documentElement.style.setProperty('--cursor-y', event.clientY + 'px');
+        // === Live competitive-programming stats ===
+        const leetCodeSolved = document.getElementById('leetcode-solved');
+        const leetCodeRating = document.getElementById('leetcode-rating');
+        const codeforcesRating = document.getElementById('codeforces-rating');
+        const liveStatsStatus = document.getElementById('live-stats-status');
+
+        function formatStat(value) {
+            return new Intl.NumberFormat('en-IN').format(value);
+        }
+
+        function updateLiveCounter(element, value) {
+            element.dataset.liveUpdated = 'true';
+            element.dataset.target = String(value);
+            element.dataset.suffix = '';
+            element.textContent = formatStat(value);
+        }
+
+        async function fetchLiveStat(url) {
+            const controller = new AbortController();
+            const timeoutId = window.setTimeout(() => controller.abort(), 10000);
+            try {
+                const response = await fetch(url, {
+                    cache: 'no-store',
+                    headers: { Accept: 'application/json' },
+                    signal: controller.signal
+                });
+                if (!response.ok) throw new Error('Request failed: ' + response.status);
+                return response.json();
+            } finally {
+                window.clearTimeout(timeoutId);
+            }
+        }
+
+        function getLatestLeetCodeRating(contests) {
+            const latestContest = contests.reduce((latest, contest) => {
+                if (!latest || contest.contest.startTime > latest.contest.startTime) return contest;
+                return latest;
+            }, null);
+            return latestContest?.rating;
+        }
+
+        async function refreshCompetitiveStats() {
+            const [leetCodeSolvedResult, leetCodeContestResult, codeforcesResult] = await Promise.allSettled([
+                fetchLiveStat('https://alfa-leetcode-api.onrender.com/Mandeep_15686/solved'),
+                fetchLiveStat('https://alfa-leetcode-api.onrender.com/Mandeep_15686/contest'),
+                fetchLiveStat('https://codeforces.com/api/user.info?handles=mandeep15686')
+            ]);
+            const updatedSources = [];
+
+            if (leetCodeSolvedResult.status === 'fulfilled') {
+                const solved = Number(leetCodeSolvedResult.value.solvedProblem);
+                if (Number.isFinite(solved)) {
+                    updateLiveCounter(leetCodeSolved, solved);
+                    updatedSources.push('LeetCode solved count');
+                }
+            }
+
+            if (leetCodeContestResult.status === 'fulfilled') {
+                const rating = Number(getLatestLeetCodeRating(leetCodeContestResult.value.contestParticipation || []));
+                if (Number.isFinite(rating) && rating > 0) {
+                    leetCodeRating.textContent = formatStat(rating);
+                    updatedSources.push('LeetCode rating');
+                }
+            }
+
+            if (codeforcesResult.status === 'fulfilled') {
+                const rating = Number(codeforcesResult.value.result?.[0]?.rating);
+                if (Number.isFinite(rating) && rating > 0) {
+                    updateLiveCounter(codeforcesRating, rating);
+                    updatedSources.push('Codeforces rating');
+                }
+            }
+
+            liveStatsStatus.textContent = updatedSources.length
+                ? 'Live ' + updatedSources.join(', ') + ' updated.'
+                : 'Live statistics are temporarily unavailable; showing the last known values.';
+        }
+
+        refreshCompetitiveStats();
+
+        // === INTERACTIVE NEURAL NETWORK MESH CANVAS ===
+        (function initNeuralCanvas() {
+            const canvas = document.getElementById('neural-canvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            let width = (canvas.width = window.innerWidth);
+            let height = (canvas.height = window.innerHeight);
+
+            let particles = [];
+            const particleCount = Math.min(Math.floor(window.innerWidth / 24), 60);
+            const connectionDistance = 145;
+            const mouseDistance = 160;
+
+            let mouse = { x: -1000, y: -1000 };
+
+            window.addEventListener('resize', () => {
+                width = canvas.width = window.innerWidth;
+                height = canvas.height = window.innerHeight;
             }, { passive: true });
 
-            document.querySelectorAll('.tilt-card').forEach((card) => {
-                card.addEventListener('pointermove', (event) => {
-                    const box = card.getBoundingClientRect();
-                    const x = (event.clientX - box.left) / box.width - 0.5;
-                    const y = (event.clientY - box.top) / box.height - 0.5;
-                    card.style.transform = 'perspective(900px) rotateX(' + (-y * 4) + 'deg) rotateY(' + (x * 5) + 'deg) translateY(-5px)';
-                });
-                card.addEventListener('pointerleave', () => { card.style.transform = ''; });
+            window.addEventListener('pointermove', (e) => {
+                mouse.x = e.clientX;
+                mouse.y = e.clientY;
+            }, { passive: true });
+
+            class Particle {
+                constructor() {
+                    this.x = Math.random() * width;
+                    this.y = Math.random() * height;
+                    this.vx = (Math.random() - 0.5) * 0.75;
+                    this.vy = (Math.random() - 0.5) * 0.75;
+                    this.radius = Math.random() * 1.8 + 1;
+                    this.baseAlpha = Math.random() * 0.4 + 0.2;
+                }
+                update() {
+                    this.x += this.vx;
+                    this.y += this.vy;
+
+                    if (this.x < 0 || this.x > width) this.vx *= -1;
+                    if (this.y < 0 || this.y > height) this.vy *= -1;
+
+                    const dx = mouse.x - this.x;
+                    const dy = mouse.y - this.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist < mouseDistance && dist > 0) {
+                        const force = (mouseDistance - dist) / mouseDistance;
+                        this.x -= (dx / dist) * force * 1.5;
+                        this.y -= (dy / dist) * force * 1.5;
+                    }
+                }
+                draw() {
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(0, 229, 255, ${this.baseAlpha})`;
+                    ctx.shadowBlur = 6;
+                    ctx.shadowColor = '#00e5ff';
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+                }
+            }
+
+            for (let i = 0; i < particleCount; i++) {
+                particles.push(new Particle());
+            }
+
+            function render() {
+                if (document.hidden) {
+                    requestAnimationFrame(render);
+                    return;
+                }
+                ctx.clearRect(0, 0, width, height);
+
+                for (let i = 0; i < particles.length; i++) {
+                    const p1 = particles[i];
+                    p1.update();
+                    p1.draw();
+
+                    for (let j = i + 1; j < particles.length; j++) {
+                        const p2 = particles[j];
+                        const dx = p1.x - p2.x;
+                        const dy = p1.y - p2.y;
+                        const dist = Math.sqrt(dx * dx + dy * dy);
+
+                        if (dist < connectionDistance) {
+                            const alpha = (1 - dist / connectionDistance) * 0.22;
+                            ctx.beginPath();
+                            ctx.moveTo(p1.x, p1.y);
+                            ctx.lineTo(p2.x, p2.y);
+                            ctx.strokeStyle = `rgba(108, 99, 255, ${alpha})`;
+                            ctx.lineWidth = 0.85;
+                            ctx.stroke();
+                        }
+                    }
+
+                    const mdx = p1.x - mouse.x;
+                    const mdy = p1.y - mouse.y;
+                    const mdist = Math.sqrt(mdx * mdx + mdy * mdy);
+                    if (mdist < mouseDistance) {
+                        const malpha = (1 - mdist / mouseDistance) * 0.4;
+                        ctx.beginPath();
+                        ctx.moveTo(p1.x, p1.y);
+                        ctx.lineTo(mouse.x, mouse.y);
+                        ctx.strokeStyle = `rgba(0, 229, 255, ${malpha})`;
+                        ctx.lineWidth = 1.1;
+                        ctx.stroke();
+                    }
+                }
+
+                requestAnimationFrame(render);
+            }
+
+            if (!reducedMotion) render();
+        })();
+
+        // === CUSTOM POINTER & CLICK SPARK ENGINE ===
+        if (window.matchMedia('(pointer: fine)').matches && !reducedMotion) {
+            document.body.classList.add('custom-pointer-enabled', 'pointer-ready');
+            const customCursor = document.getElementById('custom-cursor');
+            const cursorFollower = document.getElementById('cursor-follower');
+
+            let cursorX = window.innerWidth / 2;
+            let cursorY = window.innerHeight / 2;
+            let followerX = cursorX;
+            let followerY = cursorY;
+
+            window.addEventListener('pointermove', (event) => {
+                cursorX = event.clientX;
+                cursorY = event.clientY;
+                document.documentElement.style.setProperty('--cursor-x', cursorX + 'px');
+                document.documentElement.style.setProperty('--cursor-y', cursorY + 'px');
+
+                if (customCursor) {
+                    customCursor.style.transform = `translate3d(${cursorX}px, ${cursorY}px, 0) translate(-50%, -50%)`;
+                }
+            }, { passive: true });
+
+            function animateFollower() {
+                followerX += (cursorX - followerX) * 0.18;
+                followerY += (cursorY - followerY) * 0.18;
+                if (cursorFollower) {
+                    cursorFollower.style.transform = `translate3d(${followerX}px, ${followerY}px, 0) translate(-50%, -50%)`;
+                }
+                requestAnimationFrame(animateFollower);
+            }
+            animateFollower();
+
+            // Hover interactions
+            const hoverSelectors = 'a, button, .proj-card, .skill-pill, .tech-chip, .social-btn, .mtab, .project-link, .proj-github-link';
+            document.querySelectorAll(hoverSelectors).forEach((el) => {
+                el.addEventListener('mouseenter', () => cursorFollower?.classList.add('hovering'));
+                el.addEventListener('mouseleave', () => cursorFollower?.classList.remove('hovering'));
             });
 
+            // Click spark particle burst
+            window.addEventListener('click', (e) => {
+                const sparkCount = 8;
+                for (let i = 0; i < sparkCount; i++) {
+                    const spark = document.createElement('span');
+                    spark.className = 'click-spark';
+                    const angle = (i / sparkCount) * Math.PI * 2;
+                    const distance = 22 + Math.random() * 18;
+                    const dx = Math.cos(angle) * distance + 'px';
+                    const dy = Math.sin(angle) * distance + 'px';
+                    spark.style.setProperty('--dx', dx);
+                    spark.style.setProperty('--dy', dy);
+                    spark.style.left = e.clientX + 'px';
+                    spark.style.top = e.clientY + 'px';
+                    document.body.appendChild(spark);
+                    spark.addEventListener('animationend', () => spark.remove());
+                }
+            });
+        }
+
+        // === MULTI-LAYER 3D TILT & GLARE SHIMMER ===
+        document.querySelectorAll('.proj-card, .glass-panel, .terminal-card, .skill-category').forEach((card) => {
+            if (!card.querySelector('.glare-effect')) {
+                const glare = document.createElement('div');
+                glare.className = 'glare-effect';
+                card.appendChild(glare);
+            }
+
+            if (window.matchMedia('(pointer: fine)').matches && !reducedMotion) {
+                card.addEventListener('pointermove', (e) => {
+                    const box = card.getBoundingClientRect();
+                    const x = (e.clientX - box.left) / box.width;
+                    const y = (e.clientY - box.top) / box.height;
+
+                    const rotateX = (y - 0.5) * -14;
+                    const rotateY = (x - 0.5) * 14;
+
+                    card.style.setProperty('--glare-x', `${x * 100}%`);
+                    card.style.setProperty('--glare-y', `${y * 100}%`);
+                    card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-6px) scale(1.012)`;
+                });
+
+                card.addEventListener('pointerleave', () => {
+                    card.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) translateY(0px) scale(1)';
+                });
+            }
+        });
+
+        // Magnetic button physics
+        if (window.matchMedia('(pointer: fine)').matches && !reducedMotion) {
             document.querySelectorAll('.magnetic').forEach((button) => {
                 button.addEventListener('pointermove', (event) => {
                     const box = button.getBoundingClientRect();
-                    button.style.transform = 'translate(' + ((event.clientX - box.left - box.width / 2) * 0.11) + 'px, ' + ((event.clientY - box.top - box.height / 2) * 0.11) + 'px)';
+                    button.style.transform = 'translate(' + ((event.clientX - box.left - box.width / 2) * 0.14) + 'px, ' + ((event.clientY - box.top - box.height / 2) * 0.14) + 'px)';
                 });
                 button.addEventListener('pointerleave', () => { button.style.transform = ''; });
             });
         }
 
-        // === Lightweight button ripple feedback ===
+        // Button click ripple feedback
         document.querySelectorAll('.btn').forEach((button) => {
             button.addEventListener('click', (event) => {
                 const box = button.getBoundingClientRect();
@@ -812,6 +2721,219 @@
                 ripple.addEventListener('animationend', () => ripple.remove());
             });
         });
+
+        // === PROJECT CARD METRIC COUNT-UP ANIMATION ===
+        const metricObserver = new IntersectionObserver((entries, observer) => {
+            entries.forEach((entry) => {
+                if (!entry.isIntersecting) return;
+                entry.target.querySelectorAll('.pmetric-val').forEach((metricVal) => {
+                    const originalText = metricVal.textContent.trim();
+                    const numMatch = originalText.match(/[\d.]+/);
+                    if (!numMatch) return;
+                    const targetNum = parseFloat(numMatch[0]);
+                    const prefix = originalText.substring(0, numMatch.index);
+                    const suffix = originalText.substring(numMatch.index + numMatch[0].length);
+                    const isDecimal = numMatch[0].includes('.');
+
+                    let current = 0;
+                    const duration = 1200;
+                    const start = performance.now();
+
+                    function step(now) {
+                        const elapsed = Math.min((now - start) / duration, 1);
+                        const eased = 1 - Math.pow(1 - elapsed, 3);
+                        const val = current + (targetNum - current) * eased;
+                        metricVal.textContent = prefix + (isDecimal ? val.toFixed(1) : Math.floor(val)) + suffix;
+                        if (elapsed < 1) requestAnimationFrame(step);
+                        else metricVal.textContent = originalText;
+                    }
+                    if (!reducedMotion) requestAnimationFrame(step);
+                });
+                observer.unobserve(entry.target);
+            });
+        }, { threshold: 0.35 });
+        document.querySelectorAll('.proj-card').forEach((card) => metricObserver.observe(card));
+
+        // === Interactive Case Study Modals & Chart.js Integration ===
+        const initializedCharts = {};
+
+        function getModalId(id) {
+            if (!id) return '';
+            return id.startsWith('modal-') ? id : 'modal-' + id;
+        }
+
+        function openModal(id) {
+            const modalId = getModalId(id);
+            const overlay = document.getElementById(modalId);
+            if (!overlay) return;
+            overlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+            initModalChart(modalId);
+        }
+
+        function closeModal(id) {
+            if (!id) {
+                document.querySelectorAll('.modal-overlay.active').forEach(o => o.classList.remove('active'));
+                document.body.style.overflow = '';
+                return;
+            }
+            const modalId = getModalId(id);
+            const overlay = document.getElementById(modalId);
+            if (overlay) overlay.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        function switchMTab(modalPrefix, tabId) {
+            const modalId = getModalId(modalPrefix);
+            const overlay = document.getElementById(modalId);
+            if (!overlay) return;
+
+            const tabs = overlay.querySelectorAll('.mtab');
+            const panes = overlay.querySelectorAll('.mpane');
+
+            tabs.forEach(tab => {
+                const tabData = tab.dataset.tab || (tab.getAttribute('onclick') || '').match(/'([^']+)'\s*\)$/)?.[1];
+                tab.classList.toggle('active', tabData === tabId);
+            });
+
+            const rawPrefix = modalPrefix.replace(/^modal-/, '');
+            panes.forEach(pane => {
+                const paneData = pane.dataset.pane || pane.id.replace(`${rawPrefix}-`, '');
+                const isMatch = paneData === tabId;
+                pane.classList.toggle('active', isMatch);
+                if (isMatch && tabId === 'metrics') {
+                    initModalChart(modalId);
+                }
+            });
+        }
+
+        // Global keydown handler for Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                document.querySelectorAll('.modal-overlay.active').forEach(overlay => {
+                    closeModal(overlay.id);
+                });
+            }
+        });
+
+        // Click outside listener for all modal overlays
+        document.querySelectorAll('.modal-overlay').forEach(overlay => {
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) {
+                    closeModal(overlay.id);
+                }
+            });
+        });
+
+        // Initialize Chart.js charts on demand
+        function initModalChart(modalId) {
+            if (initializedCharts[modalId] || typeof Chart === 'undefined') return;
+
+            Chart.defaults.color = '#94a3b8';
+            Chart.defaults.font.family = '"JetBrains Mono", monospace';
+
+            if (modalId === 'modal-fm') {
+                const ctx = document.getElementById('chart-fm');
+                if (ctx) {
+                    new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: ['Precision', 'Recall', 'F1 Score', 'Accuracy', 'Latency Score'],
+                            datasets: [{
+                                label: 'FactoryMind Performance Metrics (%)',
+                                data: [95.4, 93.1, 94.2, 96.8, 91.0],
+                                backgroundColor: 'rgba(91, 141, 238, 0.6)',
+                                borderColor: '#5b8dee',
+                                borderWidth: 2,
+                                borderRadius: 6
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: { backgroundColor: 'rgba(8, 13, 33, 0.9)', titleColor: '#00e5ff', bodyColor: '#f8fbff' }
+                            },
+                            scales: {
+                                y: { min: 70, max: 100, grid: { color: 'rgba(255, 255, 255, 0.08)' } },
+                                x: { grid: { display: false } }
+                            }
+                        }
+                    });
+                    initializedCharts[modalId] = true;
+                }
+            } else if (modalId === 'modal-mer') {
+                const ctx = document.getElementById('chart-mer');
+                if (ctx) {
+                    new Chart(ctx, {
+                        type: 'radar',
+                        data: {
+                            labels: ['Gap F1', 'Faithfulness', 'Routing Acc', 'Coverage', 'Speed Index'],
+                            datasets: [{
+                                label: 'Meridian Performance Benchmark',
+                                data: [87, 91, 96.4, 92, 88],
+                                backgroundColor: 'rgba(139, 92, 246, 0.35)',
+                                borderColor: '#8b5cf6',
+                                pointBackgroundColor: '#10d9a0',
+                                pointBorderColor: '#fff',
+                                borderWidth: 2
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: { backgroundColor: 'rgba(8, 13, 33, 0.9)', titleColor: '#10d9a0', bodyColor: '#f8fbff' }
+                            },
+                            scales: {
+                                r: {
+                                    angleLines: { color: 'rgba(255, 255, 255, 0.1)' },
+                                    grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                                    suggestedMin: 60,
+                                    suggestedMax: 100,
+                                    ticks: { backdropColor: 'transparent', color: '#94a3b8' }
+                                }
+                            }
+                        }
+                    });
+                    initializedCharts[modalId] = true;
+                }
+            } else if (modalId === 'modal-fit') {
+                const ctx = document.getElementById('chart-fit');
+                if (ctx) {
+                    new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: ['Push-ups', 'Squats', 'Lunges', 'Jumping Jacks', 'Plank Form'],
+                            datasets: [{
+                                label: 'On-Device Pose Accuracy (%)',
+                                data: [98.2, 97.5, 96.1, 95.8, 98.9],
+                                backgroundColor: 'rgba(16, 217, 160, 0.6)',
+                                borderColor: '#10d9a0',
+                                borderWidth: 2,
+                                borderRadius: 6
+                            }]
+                        },
+                        options: {
+                            indexAxis: 'y',
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: { backgroundColor: 'rgba(8, 13, 33, 0.9)', titleColor: '#64ffda', bodyColor: '#f8fbff' }
+                            },
+                            scales: {
+                                x: { min: 85, max: 100, grid: { color: 'rgba(255, 255, 255, 0.08)' } },
+                                y: { grid: { display: false } }
+                            }
+                        }
+                    });
+                    initializedCharts[modalId] = true;
+                }
+            }
+        }
     </script>
 </body>
 </html>
